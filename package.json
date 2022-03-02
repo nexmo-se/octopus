@@ -1,0 +1,28 @@
+{
+  "name": "sms-proxy",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vonage/server-sdk": "^2.10.10",
+    "bootstrap": "^3.4.1",
+    "bootstrap-select": "^1.13.18",
+    "bootstrap-select-country": "^4.2.0",
+    "consolidate": "^0.16.0",
+    "country-code-lookup": "^0.0.20",
+    "dropdown-js": "^0.0.1-alpha11",
+    "ejs": "^3.1.6",
+    "http-proxy-middleware": "^2.0.3",
+    "i18n-iso-countries": "^7.3.0",
+    "jquery": "^3.6.0",
+    "libphonenumber-js": "^1.9.49",
+    "neru-alpha": "^0.1.18",
+    "serve-static": "^1.14.2"
+  }
+}

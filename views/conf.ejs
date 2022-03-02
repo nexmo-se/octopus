@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>JS Bin</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+
+  <link rel="stylesheet" href="./css/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="./css/bootstrap-select.min.css" type="text/css" />
+  <link rel="stylesheet" href="./css/bootstrap-select-country.min.css" type="text/css" />
+
+  <script src="./js/jquery.min.js"></script>
+  <script src="./js/bootstrap.min.js"></script>
+  <script src="./js/bootstrap-select.min.js"></script>
+  <script src="./js/bootstrap-select-country.min.js"></script>
+
+</head>
+
+<body>
+  <label>Select Countries to Blacklist</label><br>
+  <select id="countryList" class="selectpicker countrypicker" data-actions-box="true" data-flag="true" multiple
+    data-default="<%= blacklist_selected %>"></select>
+  <button id="set">Set Black List</button>
+  <!-- Use if not using bootstrap-select and you want a select all/deselect all button-->
+  <!-- <button id="select_all_countries">Select All</button>&nbsp;<button id="deselect_all_countries">Reset</button> -->
+
+
+  
+  <hr>
+  <label>Countries Currently Blacklisted</label><br>
+  <select id="blacklisted" size="20">
+    <% for (let country of blacklist_with_name){ %>
+      <option>
+        <%= country %>
+      </option>
+      <% } %>
+  </select>
+  <script>
+    function serealizeSelects(select) {
+      var array = [];
+      select.each(function () { array.push($(this).val()) });
+      return array;
+    }
+    // //Use this if you want a custom button for select or deselect (like if you are not using bootstrap-select)
+    //
+    // $('#select_all_countries').click(function () {
+    //   $('#countryList option').prop('selected', true);
+    // });
+
+    // $('#deselect_all_countries').click(function () {
+    //   $('#countryList option').prop('selected', false);
+    // });
+
+    $('.countrypicker').countrypicker();
+    $("#set").click(function () {
+      dat = $("#countryList").val()
+
+      console.log(dat)
+      $.post("set_blacklist", { "data": dat })
+        .done(function (data) {
+          document.getElementById("blacklisted").options.length = 0;
+          data.forEach(function (t, i) {
+            $('#blacklisted').append($('<option>', {
+              value: i,
+              text: t
+            }));
+          });
+        });
+    });
+  </script>
+
+
+
+</body>
+
+</html>
