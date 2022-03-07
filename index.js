@@ -68,11 +68,17 @@ router.use(e_session({
   saveUninitialized: false, // don't create session until something stored
 //   store: new SQLiteStore({ db: 'sessions.db', dir: './' })
 }));
-router.use(csrf());
+//router.use(csrf());
 router.use(flash());
 router.use(passport.authenticate('session'));
 router.use(function(req, res, next) {
-  res.locals.csrfToken = req.csrfToken();
+  try{
+    res.locals.csrfToken = req.csrfToken();  
+  }catch(e){
+      //nothing
+  }
+    
+
   next();
 });
 
@@ -123,7 +129,7 @@ router.get('/', async (req, res, next) => {
 });
 
 //Set Blacklist
-router.post('/set_blacklist', async (req, res, next) => {
+router.post('/set_blacklist', csrf(), async (req, res, next) => {
     var blacklist = req.body.data
     if (!blacklist) blacklist = [];
     await instanceState.set("blacklist", JSON.stringify(blacklist));
@@ -138,7 +144,7 @@ router.get('/blacklist', async (req, res, next) => {
 });
 
 //Load Conf page
-router.get('/conf', ensureLoggedIn("./login"), async (req, res, next) => {
+router.get('/conf', csrf(), ensureLoggedIn("./login"), async (req, res, next) => {
     //use consolidate js to load ejs file since we don't have access to express
     var blacklist = await instanceState.get("blacklist");
     if (!blacklist) blacklist = "[]";
@@ -152,26 +158,26 @@ router.get('/conf', ensureLoggedIn("./login"), async (req, res, next) => {
 });
 
 
-router.get('/login', function (req, res, next) {
+router.get('/login', csrf(), function (req, res, next) {
     cons.ejs(path + "login.ejs", {csrfToken: req.csrfToken(), messages : req.flash("error")}, function (err, html) {
         if (err) throw err;
         res.send(html);
     });
 });
 
-router.post('/login', passport.authenticate('local', {
+router.post('/login', csrf(), passport.authenticate('local', {
     successReturnToOrRedirect: './conf',
     failureRedirect: './login',
     failureFlash: true
 }));
 
 
-router.post('/logout', function (req, res, next) {
+router.post('/logout', csrf(), function (req, res, next) {
     req.logout();
     res.redirect('./login');
 });
 
-router.get('/logout', function (req, res, next) {
+router.get('/logout', csrf(), function (req, res, next) {
     req.logout();
     res.redirect('./');
 });

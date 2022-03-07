@@ -1,21 +1,25 @@
 <!DOCTYPE html>
+
 <html>
-  <nav class="nav">
-    <ul>
-      <li class="user"><%= user.username %></li>
-      <li>
-        <form action="./logout" method="post">
-          <button class="logout" type="submit">Sign out</button>
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-        </form>
-      </li>
-    </ul>
-  </nav>
+<nav class="nav">
+  <ul>
+    <li class="user">
+      <%= user.username %>
+    </li>
+    <li>
+      <form action="./logout" method="post">
+        <button class="logout" type="submit">Sign out</button>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      </form>
+    </li>
+  </ul>
+</nav>
+
 <head>
   <title>JS Bin</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-
+  <meta name="csrf-token" content="<%= csrfToken %>">
   <link rel="stylesheet" href="./css/bootstrap.min.css" type="text/css" />
   <link rel="stylesheet" href="./css/bootstrap-select.min.css" type="text/css" />
   <link rel="stylesheet" href="./css/bootstrap-select-country.min.css" type="text/css" />
@@ -35,7 +39,7 @@
   <!-- Use if not using bootstrap-select and you want a select all/deselect all button-->
   <!-- <button id="select_all_countries">Select All</button>&nbsp;<button id="deselect_all_countries">Reset</button> -->
 
-  
+
   <hr>
   <label>Countries Currently Blacklisted</label><br>
   <select id="blacklisted" size="20">
@@ -46,6 +50,12 @@
       <% } %>
   </select>
   <script>
+    $.ajaxSetup({
+      headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+      }
+    });
+
     function serealizeSelects(select) {
       var array = [];
       select.each(function () { array.push($(this).val()) });
