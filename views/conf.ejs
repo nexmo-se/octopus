@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html>
-
+  <nav class="nav">
+    <ul>
+      <li class="user"><%= user.username %></li>
+      <li>
+        <form action="./logout" method="post">
+          <button class="logout" type="submit">Sign out</button>
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        </form>
+      </li>
+    </ul>
+  </nav>
 <head>
   <title>JS Bin</title>
   <meta charset="utf-8">
@@ -24,7 +34,6 @@
   <button id="set">Set Black List</button>
   <!-- Use if not using bootstrap-select and you want a select all/deselect all button-->
   <!-- <button id="select_all_countries">Select All</button>&nbsp;<button id="deselect_all_countries">Reset</button> -->
-
 
   
   <hr>

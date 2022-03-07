@@ -1,0 +1,12 @@
+project:
+    name: sms-country-blacklist-proxy-1
+instance:
+    name: dev
+    runtime: nodejs
+    region: aws.apse1
+    application-id: <APPID>
+    configurations:
+        contact:
+            number: ""
+            type: phone
+
