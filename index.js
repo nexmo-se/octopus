@@ -3,7 +3,7 @@ import Vonage from '@vonage/server-sdk';
 import hpm from 'http-proxy-middleware';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import st from 'serve-static';
+import express from 'express';
 import parsePhoneNumber from 'libphonenumber-js'
 import isoCountry from "i18n-iso-countries";
 import cons from 'consolidate';
@@ -57,10 +57,11 @@ const app_id = process.env['API_APPLICATION_ID']; //get application_id
 const api_key = process.env['API_ACCOUNT_ID']; //get api key
 const { createProxyMiddleware, fixRequestBody, Filter, Options, RequestHandler } = hpm;
 const router = neru.Router();
+
 const session = neru.getSessionById('neru-sms-proxy-' + app_id);
 const instanceState = session.getState();
 
-
+//fsetup standard cookies and sessions
 router.use(cookieParser());
 router.use(e_session({
   secret: 'keyboard cat',
@@ -83,14 +84,14 @@ router.use(function(req, res, next) {
 });
 
 //load the css, js, fonts to static paths so it's easier to call in template
-router.use("/fonts", st(join(__dirname, "node_modules/bootstrap/fonts")));
-router.use("/css", st(join(__dirname, "node_modules/bootstrap/dist/css")));
-router.use("/css", st(join(__dirname, "node_modules/bootstrap-select/dist/css")));
-router.use("/css", st(join(__dirname, "node_modules/bootstrap-select-country/dist/css")));
-router.use("/js", st(join(__dirname, "node_modules/bootstrap/dist/js")));
-router.use("/js", st(join(__dirname, "node_modules/bootstrap-select/dist/js")));
-router.use("/js", st(join(__dirname, "node_modules/bootstrap-select-country/dist/js")));
-router.use("/js", st(join(__dirname, "node_modules/jquery/dist")));
+router.use("/fonts", express.static(join(__dirname, "node_modules/bootstrap/fonts")));
+router.use("/css", express.static(join(__dirname, "node_modules/bootstrap/dist/css")));
+router.use("/css", express.static(join(__dirname, "node_modules/bootstrap-select/dist/css")));
+router.use("/css", express.static(join(__dirname, "node_modules/bootstrap-select-country/dist/css")));
+router.use("/js", express.static(join(__dirname, "node_modules/bootstrap/dist/js")));
+router.use("/js", express.static(join(__dirname, "node_modules/bootstrap-select/dist/js")));
+router.use("/js", express.static(join(__dirname, "node_modules/bootstrap-select-country/dist/js")));
+router.use("/js", express.static(join(__dirname, "node_modules/jquery/dist")));
 
 router.use('/sms',
     //custom middleware to check if "to" is blacklisted
@@ -117,6 +118,7 @@ router.use('/sms',
         target: 'https://rest.nexmo.com', changeOrigin: true,
         onProxyReq: (proxyReq, req, res) => {
             fixRequestBody(proxyReq, req); //this fixes the body to orignal format before modifed by body-parer
+            //this happens because neru loads body parser and changes the body to json instead of the default form paramas that rest.nexmo needs
         }
 
     })
@@ -172,15 +174,14 @@ router.post('/login', csrf(), passport.authenticate('local', {
 }));
 
 
-router.post('/logout', csrf(), function (req, res, next) {
+router.post('/logout', function (req, res, next) {
     req.logout();
     res.redirect('./login');
 });
 
-router.get('/logout', csrf(), function (req, res, next) {
+router.get('/logout', function (req, res, next) {
     req.logout();
     res.redirect('./');
 });
-
 
 export { router };
