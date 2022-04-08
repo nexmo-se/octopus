@@ -1,40 +1,57 @@
 <!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Vonage SMS Proxy</title>
+<html>
 
-		<link rel="stylesheet" href="./css/bootstrap.min.css" type="text/css" />
-		<link rel="stylesheet" href="./css/bootstrap-select.min.css" type="text/css" />
-		<script src="./js/jquery.min.js"></script>
-	</head>
-	<body>
-		<section class="prompt">
-			<h1>Sign in to Vonage SMS Proxy Configurator</h1>
-	
-			<section class="messages">
-				<% messages.forEach(function(message) { %>
-				<p><%= message %></p>
-				<% }); %>
-			</section>
-			
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Vonage SMS Proxy Blacklist</title>
+
+	<link rel="stylesheet" href="./css/bootstrap.min.css" type="text/css" />
+	<link rel="stylesheet" href="./css/bootstrap-select.min.css" type="text/css" />
+	<script src="./js/jquery.min.js"></script>
+</head>
+
+<body>
+	<div style="margin: 20px;">
+		<div class="prompt" style="min-width: 500px;max-width: 1000px;margin: 0 auto;">
+
 			<form action="./login" method="post">
-				<section>
-					<label for="username">APP ID</label>
-					<input id="username" name="username" type="text" autocomplete="username" required autofocus>
-				</section>
-				<section>
-					<label for="current-password">API Secret</label>
-					<input id="current-password" name="password" type="password" autocomplete="current-password" required>
-				</section>
-				<input type="hidden" name="_csrf" value="<%= csrfToken %>">
-				<button type="submit">Sign in</button>
+				<div class="rendered-form">
+					<div class="">
+						<h1 style="margin-top: 20px; margin-bottom: 10px; color: rgb(51,51,51);">Sign in to
+							Vonage SMS Proxy Configurator</h1>
+					</div>
+					<section class="messages">
+						<% messages.forEach(function(message) { %>
+						<p><%= message %></p>
+						<% }); %>
+					</section>
+
+					<div class="formbuilder-text form-group field-application-id-field">
+						<label for="application-id-field" class="formbuilder-text-label">Application ID<span
+								class="formbuilder-required">*</span></label>
+						<input type="text" class="form-control" name="username" access="false" id="application-id-field"
+							required="required" aria-required="true">
+					</div>
+					<div class="formbuilder-text form-group field-secret-key-text-field">
+						<label for="secret-key-text-field" class="formbuilder-text-label">API Secret Key<span
+								class="formbuilder-required">*</span></label>
+						<input type="password" class="form-control" name="password" access="false"
+							id="secret-key-text-field" required="required" aria-required="true">
+					</div>
+					<input type="hidden" name="_csrf" value="<%= csrfToken %>">
+					<div class="formbuilder-button form-group field-sign-in-button">
+						<button type="submit" class="btn-default btn" name="sign-in-button" access="false"
+							 id="sign-in-button">Sign In</button>
+					</div>
+				</div>
+
 			</form>
 			<hr>
-		
-		</section>
-	
-	</body>
-	<script></script>
+
+		</div>
+	</div>
+
+</body>
+
 </html>

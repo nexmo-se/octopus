@@ -1,5 +1,4 @@
 import { neru } from 'neru-alpha';
-import Vonage from '@vonage/server-sdk';
 import hpm from 'http-proxy-middleware';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
@@ -8,79 +7,67 @@ import parsePhoneNumber from 'libphonenumber-js'
 import isoCountry from "i18n-iso-countries";
 import cons from 'consolidate';
 import cel from "connect-ensure-login"
-import passport from "passport";
-import LocalStrategy from "passport-local";
-import csrf from  "csurf";
+import csrf from "csurf";
 import e_session from "express-session"
 import cookieParser from "cookie-parser";
-// import connectSqlite3 from 'connect-sqlite3';
+import { passport_auth, passport } from "./passport-strategy.js"
 import flash from "express-flash";
-// const SQLiteStore = connectSqlite3(e_session);
+import 'dotenv/config'
+const application_id = process.env["API_APPLICATION_ID"]
+const api_key = process.env['API_ACCOUNT_ID']
 
 var ensureLoggedIn = cel.ensureLoggedIn
+passport_auth(application_id, api_key)
 
-passport.use(new LocalStrategy(function verify(appID, apiSecret, cb) {
-    if (process.env["API_APPLICATION_ID"] != appID) { return cb(null, false, { message: 'Incorrect username or password.' }); }
-    
-    const apiKey = process.env['API_ACCOUNT_ID']
-    const vonage = new Vonage({
-        apiKey: apiKey,
-        apiSecret: apiSecret
-    });
-    
-    vonage.account.listSecrets(apiKey, (err, result) => {
-      if (!err) {
-          //Valid API Secret, Let's go
-        return cb(null, {id:"0", username:"Vonage User"})
-      }else{
-        return cb(null, false, { message: 'Incorrect username or password.' })
-      }
-    });
-}));
-
-passport.serializeUser(function(user, cb) {
-    process.nextTick(function() {
-      cb(null, { id: user.id, username: user.username });
-    });
-  });
-  
-  passport.deserializeUser(function(user, cb) {
-    process.nextTick(function() {
-      return cb(null, user);
-    });
-  });
-
-//emulate js __dirname as we are in es6
 const __dirname = dirname(fileURLToPath(import.meta.url));
 var path = __dirname + '/views/';
-const app_id = process.env['API_APPLICATION_ID']; //get application_id
-const api_key = process.env['API_ACCOUNT_ID']; //get api key
 const { createProxyMiddleware, fixRequestBody, Filter, Options, RequestHandler } = hpm;
-const router = neru.Router();
 
-const session = neru.getSessionById('neru-sms-proxy-' + app_id);
+//You actually don't need neru router, just use your own
+//const router = neru.Router()
+const router = express.Router()
+
+
+// use bodyParser if not using neru
+// You can leave this here even if using neru. neru will declare this when loading it's own Express
+import bodyParser from 'body-parser';
+router.use(bodyParser.urlencoded());
+
+/*>>>> IF Standalone: use standalone redis *****/
+
+// import { createClient } from 'redis';
+// const instanceState = createClient();
+
+// instanceState.on('error', (err) => console.log('Redis Client Error', err));
+
+// await instanceState.connect();
+
+/*<<<< ENDIF Standalone *****/
+
+/*>>>> IF NERU: use Neru Session *****/
+
+const session = neru.getSessionById('neru-sms-proxy-' + application_id);
 const instanceState = session.getState();
+
+/*<<<< ENDIF NERU *****/
 
 //fsetup standard cookies and sessions
 router.use(cookieParser());
 router.use(e_session({
-  secret: 'keyboard cat',
-  resave: false, // don't save session if unmodified
-  saveUninitialized: false, // don't create session until something stored
-//   store: new SQLiteStore({ db: 'sessions.db', dir: './' })
+    secret: 'keyboard cat',
+    resave: false, // don't save session if unmodified
+    saveUninitialized: false, // don't create session until something stored
 }));
-//router.use(csrf());
+
 router.use(flash());
 router.use(passport.authenticate('session'));
-router.use(function(req, res, next) {
-  try{
-    res.locals.csrfToken = req.csrfToken();  
-  }catch(e){
-      //nothing
-  }
-    
-
-  next();
+router.use(function (req, res, next) {
+    try {
+        res.locals.csrfToken = req.csrfToken();
+    } catch (e) {
+        //nothing
+    }
+    next();
 });
 
 //load the css, js, fonts to static paths so it's easier to call in template
@@ -153,7 +140,7 @@ router.get('/conf', csrf(), ensureLoggedIn("./login"), async (req, res, next) =>
     blacklist = JSON.parse(blacklist);
     var blacklist_selected = blacklist.join(",");
     var blacklist_with_name = blacklist.map(i => i + ": " + isoCountry.getName(i, "en", { select: "official" }));
-    cons.ejs(path + "conf.ejs", { blacklist_selected: blacklist_selected, blacklist_with_name: blacklist_with_name, user: req.user, csrfToken: req.csrfToken()}, function (err, html) {
+    cons.ejs(path + "conf.ejs", { blacklist_selected: blacklist_selected, blacklist_with_name: blacklist_with_name, user: req.user, csrfToken: req.csrfToken() }, function (err, html) {
         if (err) throw err;
         res.send(html);
     });
@@ -161,7 +148,7 @@ router.get('/conf', csrf(), ensureLoggedIn("./login"), async (req, res, next) =>
 
 
 router.get('/login', csrf(), function (req, res, next) {
-    cons.ejs(path + "login.ejs", {csrfToken: req.csrfToken(), messages : req.flash("error")}, function (err, html) {
+    cons.ejs(path + "login.ejs", { csrfToken: req.csrfToken(), messages: req.flash("error") }, function (err, html) {
         if (err) throw err;
         res.send(html);
     });
@@ -184,4 +171,22 @@ router.get('/logout', function (req, res, next) {
     res.redirect('./');
 });
 
+
+
+/*>>>> IF STANDALONE: Use Own Express ******/
+
+// const app = express()
+// const port = 3001
+// console.log(process.env)
+// app.use(router)
+// app.listen(port, () => {
+//     console.log(`App listening on port ${port}`)
+// })
+
+/*<<<< ENDIF Standalone *****/
+
+/*>>>> IF NERU: use Neru's Express *****/
+
 export { router };
+
+/*<<<< ENDIF NERU *****/

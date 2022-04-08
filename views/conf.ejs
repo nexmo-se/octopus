@@ -1,22 +1,9 @@
 <!DOCTYPE html>
 
 <html>
-<nav class="nav">
-  <ul>
-    <li class="user">
-      <%= user.username %>
-    </li>
-    <li>
-      <form action="./logout" method="post">
-        <button class="logout" type="submit">Sign out</button>
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      </form>
-    </li>
-  </ul>
-</nav>
 
 <head>
-  <title>JS Bin</title>
+  <title>Vonage SMS Proxy Configurator</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
   <meta name="csrf-token" content="<%= csrfToken %>">
@@ -32,23 +19,47 @@
 </head>
 
 <body>
-  <label>Select Countries to Blacklist</label><br>
-  <select id="countryList" class="selectpicker countrypicker" data-actions-box="true" data-flag="true" multiple
-    data-default="<%= blacklist_selected %>"></select>
-  <button id="set">Set Black List</button>
-  <!-- Use if not using bootstrap-select and you want a select all/deselect all button-->
-  <!-- <button id="select_all_countries">Select All</button>&nbsp;<button id="deselect_all_countries">Reset</button> -->
+  <div style="margin: 10px auto 10px auto;height: 30px;max-width: 1000px;">
+    <div style="float: right;">
+      <span style="display: inline-flex;">
+        <div class="user" style="padding: 5px;margin: auto 0;">
+          Vonage User
+        </div>
+        <div>
+          <form action="./logout" method="post" style="padding: 5px;margin: auto 0;">
+            <button class="logout" type="submit">Sign out</button>
+            <input type="hidden" name="_csrf" value="uvMDHRCm-IG1rh0RnC1iJnSoc6n62lWSdAzw">
+          </form>
+        </div>
+      </span>
+
+    </div>
+    <span style="float: left;margin: auto 0;padding: 5px;">
+      <label>Vonage SMS Proxy Configurator</label>
+    </span>
+  </div>
+  <hr style="border-color: darkgray;border-width: 1px;">
+  <div style="display: grid; padding: 20px; min-width: 300px; max-width:600px; margin: 0 auto;">
+    <label>Select Countries to Blacklist</label><br>
+    <div style="display:inline-flex">
+    <select id="countryList" class="selectpicker countrypicker" data-actions-box="true" data-flag="true" multiple
+      data-default="<%= blacklist_selected %>"></select>
+    <button id="set">Set Black List</button>
+    </div>
+    <!-- Use if not using bootstrap-select and you want a select all/deselect all button-->
+    <!-- <button id="select_all_countries">Select All</button>&nbsp;<button id="deselect_all_countries">Reset</button> -->
 
 
-  <hr>
-  <label>Countries Currently Blacklisted</label><br>
-  <select id="blacklisted" size="20">
-    <% for (let country of blacklist_with_name){ %>
+    <hr style="border-color: darkgray;border-width: 1px;">
+    <label>Countries Currently Blacklisted</label><br>
+    <select id="blacklisted" size="20">
+      <% for (let country of blacklist_with_name){ %>
       <option>
         <%= country %>
       </option>
       <% } %>
-  </select>
+    </select>
+  </div>
   <script>
     $.ajaxSetup({
       headers: {
