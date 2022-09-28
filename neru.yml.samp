@@ -1,12 +1,16 @@
 project:
-    name: sms-country-blacklist-proxy-1
+    name: neru-sms-proxy-country-blacklist
 instance:
     name: dev
-    runtime: nodejs
+    runtime: nodejs16
     region: aws.apse1
-    application-id: <APPID>
+    application-id: 
+    entrypoint: [node, index.js]
     configurations:
-        contact:
-            number: ""
-            type: phone
-
+        section1:
+            key1: this is an example
+        section2:
+            key2: 42
+debug:
+    name: debug
+    entrypoint: [nodemon, --inspect, index.js]

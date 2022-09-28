@@ -1,23 +1,52 @@
-import { neru } from 'neru-alpha';
+import { neru, State } from 'neru-alpha';
 import hpm from 'http-proxy-middleware';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
-import parsePhoneNumber from 'libphonenumber-js'
 import isoCountry from "i18n-iso-countries";
 import cons from 'consolidate';
 import cel from "connect-ensure-login"
 import csrf from "csurf";
 import e_session from "express-session"
 import cookieParser from "cookie-parser";
-import { passport_auth, passport } from "./passport-strategy.js"
+import { passport_auth, passport } from "./passport-strategy.js";
 import flash from "express-flash";
-import 'dotenv/config'
-const application_id = process.env["API_APPLICATION_ID"]
-const api_key = process.env['API_ACCOUNT_ID']
+import 'dotenv/config';
+import  { CountryBlacklist }  from "./filters/countryblacklist.js"
 
-var ensureLoggedIn = cel.ensureLoggedIn
-passport_auth(application_id, api_key)
+
+const port = process.env.NERU_APP_PORT || 3001;
+const app = express()
+
+var session = neru.getSessionById("zzzbeejay");
+const globalstate = new State(session);
+const countryblacklist = new CountryBlacklist(globalstate);
+
+const neru_sessions = function (req, res, next){
+    var sid = req.session.id
+    var session = neru.getSessionById(sid);
+    console.log("neru_sess", session)
+    next();
+};
+
+var api_key = "";
+const ensureLoggedIn = function (req, res, next){
+    var session = neru.getSessionById(req.session.id)
+    const state = new State(session);
+    const neru_user = state.get("neru_user");
+    var api_key = neru_user["api_key"];
+    console.log(api_key)
+    next();
+
+    if (!neru_user) {
+        next();
+    }
+    else {
+        next();
+    }
+};
+
+passport_auth(neru)
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 var path = __dirname + '/views/';
@@ -25,13 +54,12 @@ const { createProxyMiddleware, fixRequestBody, Filter, Options, RequestHandler }
 
 //You actually don't need neru router, just use your own
 //const router = neru.Router()
-const router = express.Router()
 
 
 // use bodyParser if not using neru
 // You can leave this here even if using neru. neru will declare this when loading it's own Express
 import bodyParser from 'body-parser';
-router.use(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded());
 
 /*>>>> IF Standalone: use standalone redis *****/
 
@@ -44,24 +72,16 @@ router.use(bodyParser.urlencoded());
 
 /*<<<< ENDIF Standalone *****/
 
-/*>>>> IF NERU: use Neru Session *****/
-
-const session = neru.getSessionById('neru-sms-proxy-' + application_id);
-const instanceState = session.getState();
-
-/*<<<< ENDIF NERU *****/
-
-//fsetup standard cookies and sessions
-router.use(cookieParser());
-router.use(e_session({
+app.use(cookieParser());
+app.use(e_session({
     secret: 'keyboard cat',
     resave: false, // don't save session if unmodified
-    saveUninitialized: false, // don't create session until something stored
+    saveUninitialized: true, // don't create session until something stored
 }));
-
-router.use(flash());
-router.use(passport.authenticate('session'));
-router.use(function (req, res, next) {
+app.use(neru_sessions);
+app.use(flash());
+app.use(passport.authenticate('session'));
+app.use(function (req, res, next) {
     try {
         res.locals.csrfToken = req.csrfToken();
     } catch (e) {
@@ -71,35 +91,18 @@ router.use(function (req, res, next) {
 });
 
 //load the css, js, fonts to static paths so it's easier to call in template
-router.use("/fonts", express.static(join(__dirname, "node_modules/bootstrap/fonts")));
-router.use("/css", express.static(join(__dirname, "node_modules/bootstrap/dist/css")));
-router.use("/css", express.static(join(__dirname, "node_modules/bootstrap-select/dist/css")));
-router.use("/css", express.static(join(__dirname, "node_modules/bootstrap-select-country/dist/css")));
-router.use("/js", express.static(join(__dirname, "node_modules/bootstrap/dist/js")));
-router.use("/js", express.static(join(__dirname, "node_modules/bootstrap-select/dist/js")));
-router.use("/js", express.static(join(__dirname, "node_modules/bootstrap-select-country/dist/js")));
-router.use("/js", express.static(join(__dirname, "node_modules/jquery/dist")));
+app.use("/fonts", express.static(join(__dirname, "node_modules/bootstrap/fonts")));
+app.use("/css", express.static(join(__dirname, "node_modules/bootstrap/dist/css")));
+app.use("/css", express.static(join(__dirname, "node_modules/bootstrap-select/dist/css")));
+app.use("/css", express.static(join(__dirname, "node_modules/bootstrap-select-country/dist/css")));
+app.use("/js", express.static(join(__dirname, "node_modules/bootstrap/dist/js")));
+app.use("/js", express.static(join(__dirname, "node_modules/bootstrap-select/dist/js")));
+app.use("/js", express.static(join(__dirname, "node_modules/bootstrap-select-country/dist/js")));
+app.use("/js", express.static(join(__dirname, "node_modules/jquery/dist")));
 
-router.use('/sms',
+app.use('/sms',
     //custom middleware to check if "to" is blacklisted
-    (req, res, next) => {
-        instanceState.get("blacklist").then((blacklist) => {
-            if (!blacklist) {
-                next();
-            }
-            else {
-                const phoneNumber = parsePhoneNumber("+" + (req.body.to));
-                blacklist = JSON.parse(blacklist);
-                if (blacklist.includes(phoneNumber.country)) {
-                    res.status(403).send("Country in Blocked List");
-                }
-                else {
-                    next();
-                }
-            }
-        });
-
-    },
+    [countryblacklist.blacklist_to],
     //http proxy middleware
     createProxyMiddleware({
         target: 'https://rest.nexmo.com', changeOrigin: true,
@@ -113,29 +116,29 @@ router.use('/sms',
 
 
 //see if service is live
-router.get('/', async (req, res, next) => {
+app.get('/', async (req, res, next) => {
     res.send("Vonage Proxy Service");
 });
 
 //Set Blacklist
-router.post('/set_blacklist', csrf(), async (req, res, next) => {
+app.post('/set_blacklist', csrf(), async (req, res, next) => {
     var blacklist = req.body.data
     if (!blacklist) blacklist = [];
-    await instanceState.set("blacklist", JSON.stringify(blacklist));
+    await globalstate.set("blacklist", JSON.stringify(blacklist));
     blacklist = blacklist.map(i => i + ": " + isoCountry.getName(i, "en", { select: "official" }));
     res.status(200).send(blacklist)
 });
 
 //Get Blacklist
-router.get('/blacklist', async (req, res, next) => {
-    var blacklist = await instanceState.get("blacklist");
-    res.send(JSON.parse(blacklist))
+app.get('/blacklist', async (req, res, next) => {
+    var blacklist = await globalstate.get("blacklist");
+    res.send(JSON.parse(""))
 });
 
 //Load Conf page
-router.get('/conf', csrf(), ensureLoggedIn("./login"), async (req, res, next) => {
+app.get('/conf', csrf(), async (req, res, next) => {
     //use consolidate js to load ejs file since we don't have access to express
-    var blacklist = await instanceState.get("blacklist");
+    var blacklist = await globalstate.get("blacklist");
     if (!blacklist) blacklist = "[]";
     blacklist = JSON.parse(blacklist);
     var blacklist_selected = blacklist.join(",");
@@ -144,49 +147,44 @@ router.get('/conf', csrf(), ensureLoggedIn("./login"), async (req, res, next) =>
         if (err) throw err;
         res.send(html);
     });
+    //console.log("SIDXX: ",req.session.id)
+    // res.send(req.session.id);
 });
+//y6Cf7b9AycyYc6iq_6jCYAavQOTPotLj
 
-
-router.get('/login', csrf(), function (req, res, next) {
-    cons.ejs(path + "login.ejs", { csrfToken: req.csrfToken(), messages: req.flash("error") }, function (err, html) {
+app.get('/login', csrf(), function (req, res, next) {
+    cons.ejs(path + "login.ejs", { csrfToken: req.csrfToken(), messages: req.flash("error") }, async function (err, html) {
         if (err) throw err;
+        console.log("SID: ",req.session.id)
         res.send(html);
     });
 });
 
-router.post('/login', csrf(), passport.authenticate('local', {
-    successReturnToOrRedirect: './conf',
-    failureRedirect: './login',
+app.post('/login', csrf(), passport.authenticate('local', {
+    successRedirect: "conf",
+    failureRedirect: 'login',
     failureFlash: true
 }));
 
 
-router.post('/logout', function (req, res, next) {
-    req.logout();
-    res.redirect('./login');
+app.post('/logout', function (req, res, next) {
+    req.logout(function(err) {
+        if (err) { return next(err); }
+        res.redirect('login');
+    });
+
 });
 
-router.get('/logout', function (req, res, next) {
-    req.logout();
-    res.redirect('./');
+app.get('/logout', function (req, res, next) {
+    req.logout(function(err) {
+        if (err) { return next(err); }
+        res.redirect('login');
+    });
 });
 
 
 
-/*>>>> IF STANDALONE: Use Own Express ******/
-
-// const app = express()
-// const port = 3001
-// console.log(process.env)
-// app.use(router)
-// app.listen(port, () => {
-//     console.log(`App listening on port ${port}`)
-// })
-
-/*<<<< ENDIF Standalone *****/
-
-/*>>>> IF NERU: use Neru's Express *****/
-
-export { router };
-
-/*<<<< ENDIF NERU *****/
+console.log(process.env)
+app.listen(port, () => {
+    console.log(`App listening on port ${port}`)
+})

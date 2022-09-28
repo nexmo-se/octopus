@@ -1,9 +1,9 @@
 import LocalStrategy from "passport-local";
 import passport from "passport";
 import Vonage from '@vonage/server-sdk';
-function passport_auth(application_id, api_key) {
-    passport.use(new LocalStrategy(function verify(appID, apiSecret, cb) {
-        if (application_id != appID) { return cb(null, false, { message: 'Incorrect Application ID or API Key.' }); }
+function passport_auth(neru) {
+    passport.use(new LocalStrategy(function asyncverify(api_key, apiSecret, cb) {
+        //if (application_id != appID) { return cb(null, false, { message: 'Incorrect Application ID or API Key.' }); }
 
         const apiKey = api_key
         const vonage = new Vonage({
@@ -11,7 +11,7 @@ function passport_auth(application_id, api_key) {
             apiSecret: apiSecret
         });
 
-        vonage.account.listSecrets(apiKey, (err, result) => {
+        vonage.account.listSecrets(apiKey, async (err, result) => {
             if (!err) {
                 //Valid API Secret, Let's go
                 return cb(null, { id: "0", username: "Vonage User" })
