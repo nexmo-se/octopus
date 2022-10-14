@@ -3,10 +3,9 @@
 <html>
 
 <head>
-  <title>Vonage SMS Proxy Configurator</title>
+  <title>Vonage SMS Proxy Configurator </title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <meta name="csrf-token" content="<%= csrfToken %>">
   <link rel="stylesheet" href="./css/bootstrap.min.css" type="text/css" />
   <link rel="stylesheet" href="./css/bootstrap-select.min.css" type="text/css" />
   <link rel="stylesheet" href="./css/bootstrap-select-country.min.css" type="text/css" />
@@ -23,12 +22,11 @@
     <div style="float: right;">
       <span style="display: inline-flex;">
         <div class="user" style="padding: 5px;margin: auto 0;">
-          Vonage User
+          Vonage User "<%= user %>"
         </div>
         <div>
           <form action="./logout" method="post" style="padding: 5px;margin: auto 0;">
             <button class="logout" type="submit">Sign out</button>
-            <input type="hidden" name="_csrf" value="uvMDHRCm-IG1rh0RnC1iJnSoc6n62lWSdAzw">
           </form>
         </div>
       </span>
@@ -61,11 +59,6 @@
     </select>
   </div>
   <script>
-    $.ajaxSetup({
-      headers: {
-        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-      }
-    });
 
     function serealizeSelects(select) {
       var array = [];

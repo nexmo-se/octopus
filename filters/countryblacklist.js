@@ -2,7 +2,7 @@ import parsePhoneNumber from 'libphonenumber-js'
 
 export function CountryBlacklist(state){
   this.test = "123";
-   this.blacklist_to = function (req, res, next){
+  this.blacklist_to = function (req, res, next){
     state.get("blacklist").then((blacklist) => {
         if (!blacklist) {
             next();
@@ -39,4 +39,14 @@ export function CountryBlacklist(state){
     });
 
   }
+
+  this.number_block = function (req, res, next){
+    if(req.body.to == "6598629551"){
+      res.status(403).send("Number is blocked");
+    }else{
+      next();
+    }
+
+   
+  };
 }
