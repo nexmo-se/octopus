@@ -30,6 +30,7 @@
     "libphonenumber-js": "^1.10.13",
     "neru-alpha": "^3.2.0",
     "passport": "^0.5.3",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "pg": "^8.8.0"
   }
 }

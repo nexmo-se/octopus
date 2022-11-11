@@ -14,7 +14,7 @@ function passport_auth() {
         vonage.account.listSecrets(apiKey, async (err, result) => {
             if (!err) {
                 //Valid API Secret, Let's go
-                return cb(null, { id: "0", username: "Vonage User" })
+                return cb(null, { id: "0", username: apiKey })
             } else {
                 return cb(null, false, { message: 'Incorrect Application ID or API Key.' })
             }

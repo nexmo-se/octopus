@@ -11,17 +11,19 @@ import { passport_auth, passport } from "./passport-strategy.js";
 import flash from "express-flash";
 import 'dotenv/config';
 import  { CountryBlacklist }  from "./filters/countryblacklist.js"
+import  { NumberModule }  from "./filters/number_module.js"
 import cors from 'cors';
 import bodyParser from 'body-parser';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-var path = __dirname + '/views/';
+const views_path = __dirname + '/views/';
 const { createProxyMiddleware, fixRequestBody, Filter, Options, RequestHandler } = hpm;
 
 var api_key = "";
 const port = process.env.NERU_APP_PORT || 3001;
 var session = neru.getSessionById("zzbeejay");
 const globalstate = new State(session);
+const numbermodule = new NumberModule(globalstate);
 const countryblacklist = new CountryBlacklist(globalstate);
 const ensureLoggedIn = cel.ensureLoggedIn
 
@@ -68,11 +70,16 @@ app.use('/sms',
     })
 )
 
+app.use("/numbers",numbermodule.router)
+
 app.all('/octopus',
     //custom middleware to check if "to" is blacklisted
-    [countryblacklist.blacklist_to],
+    // [countryblacklist.blacklist_to],
+    // [countryblacklist.blacklist_from],
+    [numbermodule.blacklist_from],
     async (req, res) => {
-        res.json({"allowed":true})
+        res.send('{"allowed":true}')
+        return
     }
 )
 
@@ -87,33 +94,53 @@ app.get('/', async (req, res, next) => {
 
 //Set Blacklist
 app.post('/set_blacklist', async (req, res, next) => {
+    var prefix = "octo"
+    if (req.user.username){
+        prefix=req.user.username
+    }
     var blacklist = req.body.data
     if (!blacklist) blacklist = [];
-    await globalstate.set("blacklist", JSON.stringify(blacklist));
+    await globalstate.set(prefix+"blacklist", JSON.stringify(blacklist));
     blacklist = blacklist.map(i => i + ": " + isoCountry.getName(i, "en", { select: "official" }));
     res.status(200).send(blacklist)
 });
 
 //Get Blacklist
 app.get('/blacklist', async (req, res, next) => {
-    var blacklist = await globalstate.get("blacklist");
+    var prefix = "octo"
+    if (req.user.username){
+        prefix=req.user.username
+    }
+    var blacklist = await globalstate.get(prefix+"blacklist");
     res.send(JSON.parse(""))
 });
 
 //Load Conf page
+//app.get('/conf', async (req, res, next) => {
 app.get('/conf', ensureLoggedIn("./login"), async (req, res, next) => {
     //use consolidate js to load ejs file since we don't have access to express
-    var blacklist = await globalstate.get("blacklist");
+    var prefix = "octo"
+    if (req.user.username){
+        prefix=req.user.username
+    }
+    console.log("Prefix:",prefix)
+    var blacklist = await globalstate.get(prefix+"blacklist");
     if (!blacklist) blacklist = "[]";
     blacklist = JSON.parse(blacklist);
     var blacklist_selected = blacklist.join(",");
     var blacklist_with_name = blacklist.map(i => i + ": " + isoCountry.getName(i, "en", { select: "official" }));
-    res.render(path + "conf.ejs", { blacklist_selected: blacklist_selected, blacklist_with_name: blacklist_with_name, user: req.isAuthenticated() })
+
+    var numblacklist = await globalstate.get(prefix+"number_blacklist");
+    if (!numblacklist) numblacklist = "[]";
+    numblacklist = JSON.parse(numblacklist);
+    res.render(views_path + "conf.ejs", { blacklist_selected: blacklist_selected, blacklist_with_name: blacklist_with_name, num_blacklist: numblacklist, user: prefix })
+    //console.log(req)
+    //res.render(views_path + "conf.ejs", { blacklist_selected: blacklist_selected, blacklist_with_name: blacklist_with_name, user: "test"})
 });
 
 
 app.get('/login', function (req, res, next) {
-    res.render(path + "login.ejs", { messages: req.flash("error") })
+    res.render(views_path + "login.ejs", { messages: req.flash("error") })
 
 });
 

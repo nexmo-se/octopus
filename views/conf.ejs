@@ -3,7 +3,7 @@
 <html>
 
 <head>
-  <title>Vonage SMS Proxy Configurator </title>
+  <title>Vonage Octopus Proxy Configurator </title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
   <link rel="stylesheet" href="./css/bootstrap.min.css" type="text/css" />
@@ -33,7 +33,7 @@
 
     </div>
     <span style="float: left;margin: auto 0;padding: 5px;">
-      <label>Vonage SMS Proxy Configurator</label>
+      <label>Vonage SMS Octopus Configurator</label>
     </span>
   </div>
   <hr style="border-color: darkgray;border-width: 1px;">
@@ -58,6 +58,51 @@
       <% } %>
     </select>
   </div>
+  <hr>
+  <!-- <div style="display: grid; padding: 20px; min-width: 300px; max-width:600px; margin: 0 auto;">
+    <span style="display: inline-flex;">
+  <tr>
+    <td> Starting Number<br></td>
+    <td > Ending Number<br></td>
+  </tr>
+  </span>
+  </div> -->
+  <!-- <div style="display: grid; padding: 20px; min-width: 300px; max-width:600px; margin: 0 auto;">
+    <span style="display: inline-flex;">
+
+      
+      <tr><td >
+       
+        <select class="ranges" style="width: 100%" name="range_l" id="range_l" size=10>
+          <% for (let nblacklist of num_blacklist){ %>
+            <option>
+              <%= nblacklist[0] %>
+            </option>
+            <% } %>
+        </select>
+      </td><td width="auto">
+       
+        <select class="ranges" style="width: 100%"  name="range_h" id="range_h" size=10>
+          <% for (let nblacklist of num_blacklist){ %>
+            <option>
+              <%= nblacklist[1] %>
+            </option>
+            <% } %>
+        </select>
+      </td><td width="auto">
+        <input id="delete_range" type="button" value="Delete Selected">
+      </td></tr>
+
+    </span>
+    <br><br>
+    
+    <input id="range" type=text> 
+    <input id="add_range" type="button" value="add">
+    <input type="submit" value="Submit">
+
+  </div> -->
+
+
   <script>
 
     function serealizeSelects(select) {
@@ -75,6 +120,12 @@
     //   $('#countryList option').prop('selected', false);
     // });
 
+    function combined() {
+      return $('#range_l > option').map(function(i, el) { 
+        return [[parseInt(el.value), parseInt($('#range_h > option')[i].value)]];
+       }).get()
+    }
+
     $('.countrypicker').countrypicker();
     $("#set").click(function () {
       dat = $("#countryList").val()
@@ -91,6 +142,82 @@
           });
         });
     });
+
+    $(".ranges").click(function () {
+      console.log(this.selectedIndex)
+      $("#range_h").get(0).selectedIndex = this.selectedIndex;
+      $("#range_l").get(0).selectedIndex = this.selectedIndex;
+    });
+
+    $("#delete_range").click(function () {
+      $('.ranges option:selected').remove();
+      $.post("numbers/set_blacklist", { 
+          contentType:"application/json; charset=utf-8",
+          dataType:"json",
+         
+          data: JSON.stringify(combined()), })
+        .done(function (data) {
+          console.log(combined())    
+        });
+    });
+
+    $("#add_range").click(function () {
+      val = $("#range").val()
+      var rl;
+      var rh;
+      spl = val.split(/[\s-,]+/)
+      
+      if(spl.length < 2){
+        if(parseInt( spl[0] ) == spl[0] && spl[0] > 0){
+          //single number and a valid number
+          rl = parseInt(spl[0])
+          rh = rl
+        }else{
+          alert("You must enter a phone number")
+          return
+        }
+      }else{
+        //number range
+        if(parseInt( spl[0] ) == spl[0] && spl[0] > 0){
+          //single number and a valid number
+          rl = parseInt(spl[0])
+        }else{
+          alert("You must enter a phone number")
+          return
+        }
+        if(parseInt( spl[1] ) == spl[1] && spl[1] > 0){
+          //single number and a valid number
+          rh = parseInt(spl[1]);
+        }else{
+          alert("You must enter a phone number")
+          return
+        }
+      }
+      
+      if(rh<rl){
+        alert("Ending Number should not be lower than Starting Number")
+        return
+      }
+
+      if(combined().toString().includes([rl,rh].toString())){
+        alert("Already in list")
+        return
+      }
+
+      $('#range_l').append(new Option(rl, rl));
+      $('#range_h').append(new Option(rh, rh));
+      console.log("data",combined())
+      $.post("numbers/set_blacklist", { 
+          contentType:"application/json; charset=utf-8",
+          dataType:"json",
+         
+          data: JSON.stringify(combined()), })
+        .done(function (data) {
+          console.log(combined())    
+        });
+      
+    });
+
   </script>
 
 
