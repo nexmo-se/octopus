@@ -3,7 +3,7 @@
 <html>
 
 <head>
-  <title>Vonage Octopus Proxy Configurator </title>
+  <title>Vonage Octopus Country Filter Configurator </title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
   <link rel="stylesheet" href="./css/bootstrap.min.css" type="text/css" />
@@ -33,192 +33,16 @@
 
     </div>
     <span style="float: left;margin: auto 0;padding: 5px;">
-      <label>Vonage SMS Octopus Configurator</label>
+      <label>Vonage Octopus Country Filter Configurator</label>
     </span>
   </div>
   <hr style="border-color: darkgray;border-width: 1px;">
   <div style="display: grid; padding: 20px; min-width: 300px; max-width:600px; margin: 0 auto;">
-    <label>Select Countries to Blacklist</label><br>
-    <div style="display:inline-flex">
-    <select id="countryList" class="selectpicker countrypicker" data-actions-box="true" data-flag="true" multiple
-      data-default="<%= blacklist_selected %>"></select>
-    <button id="set">Set Black List</button>
-    </div>
-    <!-- Use if not using bootstrap-select and you want a select all/deselect all button-->
-    <!-- <button id="select_all_countries">Select All</button>&nbsp;<button id="deselect_all_countries">Reset</button> -->
-
-
-    <hr style="border-color: darkgray;border-width: 1px;">
-    <label>Countries Currently Blacklisted</label><br>
-    <select id="blacklisted" size="20">
-      <% for (let country of blacklist_with_name){ %>
-      <option>
-        <%= country %>
-      </option>
-      <% } %>
-    </select>
+    <a href = "numbers/conf">Number Filter Configurator</a>
+    <a href = "country/conf">Country Filter Configurator</a>
   </div>
-  <hr>
-  <!-- <div style="display: grid; padding: 20px; min-width: 300px; max-width:600px; margin: 0 auto;">
-    <span style="display: inline-flex;">
-  <tr>
-    <td> Starting Number<br></td>
-    <td > Ending Number<br></td>
-  </tr>
-  </span>
-  </div> -->
-  <!-- <div style="display: grid; padding: 20px; min-width: 300px; max-width:600px; margin: 0 auto;">
-    <span style="display: inline-flex;">
 
-      
-      <tr><td >
-       
-        <select class="ranges" style="width: 100%" name="range_l" id="range_l" size=10>
-          <% for (let nblacklist of num_blacklist){ %>
-            <option>
-              <%= nblacklist[0] %>
-            </option>
-            <% } %>
-        </select>
-      </td><td width="auto">
-       
-        <select class="ranges" style="width: 100%"  name="range_h" id="range_h" size=10>
-          <% for (let nblacklist of num_blacklist){ %>
-            <option>
-              <%= nblacklist[1] %>
-            </option>
-            <% } %>
-        </select>
-      </td><td width="auto">
-        <input id="delete_range" type="button" value="Delete Selected">
-      </td></tr>
-
-    </span>
-    <br><br>
-    
-    <input id="range" type=text> 
-    <input id="add_range" type="button" value="add">
-    <input type="submit" value="Submit">
-
-  </div> -->
-
-
-  <script>
-
-    function serealizeSelects(select) {
-      var array = [];
-      select.each(function () { array.push($(this).val()) });
-      return array;
-    }
-    // //Use this if you want a custom button for select or deselect (like if you are not using bootstrap-select)
-    //
-    // $('#select_all_countries').click(function () {
-    //   $('#countryList option').prop('selected', true);
-    // });
-
-    // $('#deselect_all_countries').click(function () {
-    //   $('#countryList option').prop('selected', false);
-    // });
-
-    function combined() {
-      return $('#range_l > option').map(function(i, el) { 
-        return [[parseInt(el.value), parseInt($('#range_h > option')[i].value)]];
-       }).get()
-    }
-
-    $('.countrypicker').countrypicker();
-    $("#set").click(function () {
-      dat = $("#countryList").val()
-
-      console.log(dat)
-      $.post("set_blacklist", { "data": dat })
-        .done(function (data) {
-          document.getElementById("blacklisted").options.length = 0;
-          data.forEach(function (t, i) {
-            $('#blacklisted').append($('<option>', {
-              value: i,
-              text: t
-            }));
-          });
-        });
-    });
-
-    $(".ranges").click(function () {
-      console.log(this.selectedIndex)
-      $("#range_h").get(0).selectedIndex = this.selectedIndex;
-      $("#range_l").get(0).selectedIndex = this.selectedIndex;
-    });
-
-    $("#delete_range").click(function () {
-      $('.ranges option:selected').remove();
-      $.post("numbers/set_blacklist", { 
-          contentType:"application/json; charset=utf-8",
-          dataType:"json",
-         
-          data: JSON.stringify(combined()), })
-        .done(function (data) {
-          console.log(combined())    
-        });
-    });
-
-    $("#add_range").click(function () {
-      val = $("#range").val()
-      var rl;
-      var rh;
-      spl = val.split(/[\s-,]+/)
-      
-      if(spl.length < 2){
-        if(parseInt( spl[0] ) == spl[0] && spl[0] > 0){
-          //single number and a valid number
-          rl = parseInt(spl[0])
-          rh = rl
-        }else{
-          alert("You must enter a phone number")
-          return
-        }
-      }else{
-        //number range
-        if(parseInt( spl[0] ) == spl[0] && spl[0] > 0){
-          //single number and a valid number
-          rl = parseInt(spl[0])
-        }else{
-          alert("You must enter a phone number")
-          return
-        }
-        if(parseInt( spl[1] ) == spl[1] && spl[1] > 0){
-          //single number and a valid number
-          rh = parseInt(spl[1]);
-        }else{
-          alert("You must enter a phone number")
-          return
-        }
-      }
-      
-      if(rh<rl){
-        alert("Ending Number should not be lower than Starting Number")
-        return
-      }
-
-      if(combined().toString().includes([rl,rh].toString())){
-        alert("Already in list")
-        return
-      }
-
-      $('#range_l').append(new Option(rl, rl));
-      $('#range_h').append(new Option(rh, rh));
-      console.log("data",combined())
-      $.post("numbers/set_blacklist", { 
-          contentType:"application/json; charset=utf-8",
-          dataType:"json",
-         
-          data: JSON.stringify(combined()), })
-        .done(function (data) {
-          console.log(combined())    
-        });
-      
-    });
-
-  </script>
+  
 
 
 

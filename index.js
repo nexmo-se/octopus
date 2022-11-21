@@ -3,7 +3,7 @@ import hpm from 'http-proxy-middleware';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
-import isoCountry from "i18n-iso-countries";
+
 import cel from "connect-ensure-login"
 import cookieSession from "cookie-session"
 import cookieParser from "cookie-parser";
@@ -14,6 +14,52 @@ import  { CountryBlacklist }  from "./filters/countryblacklist.js"
 import  { NumberModule }  from "./filters/number_module.js"
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import pg from 'pg';
+import Vonage from '@vonage/server-sdk';
+// pools will use environment variables
+// for connection information
+const pool = new pg.Pool()
+
+var octo_logger = async function (req, res, next){
+    var api_key = req.body.api_key
+    var from = ''
+    if(req.body.from) from = req.body.from
+    var to = ''
+    if(req.body.to) from = req.body.to
+    var others = '[]'
+    others = JSON.stringify(req.body)
+    const text = 'INSERT INTO octopuslog(api_key, data_from, data_to, other_params) VALUES($1, $2, $3, $4) RETURNING *'
+    const values = [api_key, from, to, others]
+    try {
+        const result = await pool.query(text, values)
+        console.log(result.rows[0])
+        req.octo_logid = result.rows[0]['id']
+        // { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
+      } catch (err) {
+        console.log(err)
+      }
+    next()
+};
+var validator = async function (req, res, next){
+    console.log("Validate")
+    var api_key = req.body.api_key
+    var api_secret = req.body.api_secret
+    const vonage = new Vonage({
+        apiKey: api_key,
+        apiSecret: api_secret
+    });
+
+    await vonage.account.listSecrets(api_key, async (err, result) => {
+        if (!err) {
+            //Valid API Secret, Let's go
+            next()
+        } else {
+            res.status(200).json({"Error":"Authentication Failed","message":"Check you API KEY and API SECRET"});
+            return
+        }
+    });
+};
+
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const views_path = __dirname + '/views/';
@@ -23,7 +69,7 @@ var api_key = "";
 const port = process.env.NERU_APP_PORT || 3001;
 var session = neru.getSessionById("zzbeejay");
 const globalstate = new State(session);
-const numbermodule = new NumberModule(globalstate);
+const numbermodule = new NumberModule(globalstate, pool);
 const countryblacklist = new CountryBlacklist(globalstate);
 const ensureLoggedIn = cel.ensureLoggedIn
 
@@ -54,7 +100,11 @@ app.use("/css", express.static(join(__dirname, "node_modules/bootstrap-select-co
 app.use("/js", express.static(join(__dirname, "node_modules/bootstrap/dist/js")));
 app.use("/js", express.static(join(__dirname, "node_modules/bootstrap-select/dist/js")));
 app.use("/js", express.static(join(__dirname, "node_modules/bootstrap-select-country/dist/js")));
+app.use("/js", express.static(join(__dirname, "node_modules/jquery-time-duration-picker/dist")));
+app.use("/jqui", express.static(join(__dirname, "node_modules/jquery-ui/dist")));
 app.use("/js", express.static(join(__dirname, "node_modules/jquery/dist")));
+app.use("/numbers",numbermodule.router)
+app.use("/country",countryblacklist.router)
 
 app.use('/sms',
     //custom middleware to check if "to" is blacklisted
@@ -70,15 +120,29 @@ app.use('/sms',
     })
 )
 
-app.use("/numbers",numbermodule.router)
 
-app.all('/octopus',
+
+app.post('/octopus',
+    validator,octo_logger,
+    numbermodule.whitelist_from,
+    numbermodule.blacklist_from,
+    numbermodule.auto_rate_block,
+
     //custom middleware to check if "to" is blacklisted
     // [countryblacklist.blacklist_to],
     // [countryblacklist.blacklist_from],
-    [numbermodule.blacklist_from],
+    //[numbermodule.blacklist_from],
     async (req, res) => {
-        res.send('{"allowed":true}')
+        const text = 'update octopuslog set allowed=true where id = $1'
+        const values = [req.octo_logid]
+        pool.query(text, values, (err, res) => {
+            if (err) {
+              console.log(err.stack)
+            } else {
+              console.log(res.rows[0])
+            }
+          })
+        res.json({"allowed":true,"log_id":req.octo_logid})
         return
     }
 )
@@ -92,52 +156,14 @@ app.get('/', async (req, res, next) => {
     res.send("Vonage Proxy Service");
 });
 
-//Set Blacklist
-app.post('/set_blacklist', async (req, res, next) => {
+app.get('/conf', function (req, res, next) {
     var prefix = "octo"
-    if (req.user.username){
+    if (req.user){
         prefix=req.user.username
     }
-    var blacklist = req.body.data
-    if (!blacklist) blacklist = [];
-    await globalstate.set(prefix+"blacklist", JSON.stringify(blacklist));
-    blacklist = blacklist.map(i => i + ": " + isoCountry.getName(i, "en", { select: "official" }));
-    res.status(200).send(blacklist)
+    res.render(views_path + "conf.ejs", {user: prefix})
+
 });
-
-//Get Blacklist
-app.get('/blacklist', async (req, res, next) => {
-    var prefix = "octo"
-    if (req.user.username){
-        prefix=req.user.username
-    }
-    var blacklist = await globalstate.get(prefix+"blacklist");
-    res.send(JSON.parse(""))
-});
-
-//Load Conf page
-//app.get('/conf', async (req, res, next) => {
-app.get('/conf', ensureLoggedIn("./login"), async (req, res, next) => {
-    //use consolidate js to load ejs file since we don't have access to express
-    var prefix = "octo"
-    if (req.user.username){
-        prefix=req.user.username
-    }
-    console.log("Prefix:",prefix)
-    var blacklist = await globalstate.get(prefix+"blacklist");
-    if (!blacklist) blacklist = "[]";
-    blacklist = JSON.parse(blacklist);
-    var blacklist_selected = blacklist.join(",");
-    var blacklist_with_name = blacklist.map(i => i + ": " + isoCountry.getName(i, "en", { select: "official" }));
-
-    var numblacklist = await globalstate.get(prefix+"number_blacklist");
-    if (!numblacklist) numblacklist = "[]";
-    numblacklist = JSON.parse(numblacklist);
-    res.render(views_path + "conf.ejs", { blacklist_selected: blacklist_selected, blacklist_with_name: blacklist_with_name, num_blacklist: numblacklist, user: prefix })
-    //console.log(req)
-    //res.render(views_path + "conf.ejs", { blacklist_selected: blacklist_selected, blacklist_with_name: blacklist_with_name, user: "test"})
-});
-
 
 app.get('/login', function (req, res, next) {
     res.render(views_path + "login.ejs", { messages: req.flash("error") })

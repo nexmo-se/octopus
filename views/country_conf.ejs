@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <title>Vonage Octopus Country Filter Configurator </title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="../css/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../css/bootstrap-select.min.css" type="text/css" />
+  <link rel="stylesheet" href="../css/bootstrap-select-country.min.css" type="text/css" />
+
+  <script src="../js/jquery.min.js"></script>
+  <script src="../js/bootstrap.min.js"></script>
+  <script src="../js/bootstrap-select.min.js"></script>
+  <script src="../js/bootstrap-select-country.min.js"></script>
+
+</head>
+
+<body>
+  <div style="margin: 10px auto 10px auto;height: 30px;max-width: 1000px;">
+    <div style="float: right;">
+      <span style="display: inline-flex;">
+        <div class="user" style="padding: 5px;margin: auto 0;">
+          Vonage User "<%= user %>"
+        </div>
+        <div>
+          <form action="../logout" method="post" style="padding: 5px;margin: auto 0;">
+            <button class="logout" type="submit">Sign out</button>
+          </form>
+        </div>
+      </span>
+
+    </div>
+    <span style="float: left;margin: auto 0;padding: 5px;">
+      <label>Vonage Octopus Country Filter Configurator</label>
+    </span>
+  </div>
+  <hr style="border-color: darkgray;border-width: 1px;">
+  <div style="display: grid; padding: 20px; min-width: 300px; max-width:600px; margin: 0 auto;">
+    <label>Select Countries to Blacklist</label><br>
+    <div style="display:inline-flex">
+    <select id="countryList" class="selectpicker countrypicker" data-actions-box="true" data-flag="true" multiple
+      data-default="<%= blacklist_selected %>"></select>
+    <button id="set">Set Black List</button>
+    </div>
+    <!-- Use if not using bootstrap-select and you want a select all/deselect all button-->
+    <!-- <button id="select_all_countries">Select All</button>&nbsp;<button id="deselect_all_countries">Reset</button> -->
+
+
+    <hr style="border-color: darkgray;border-width: 1px;">
+    <label>Countries Currently Blacklisted</label><br>
+    <select id="blacklisted" size="20">
+      <% for (let country of blacklist_with_name){ %>
+      <option>
+        <%= country %>
+      </option>
+      <% } %>
+    </select>
+  </div>
+  <hr>
+
+  <script>
+
+    function serealizeSelects(select) {
+      var array = [];
+      select.each(function () { array.push($(this).val()) });
+      return array;
+    }
+    // //Use this if you want a custom button for select or deselect (like if you are not using bootstrap-select)
+    //
+    // $('#select_all_countries').click(function () {
+    //   $('#countryList option').prop('selected', true);
+    // });
+
+    // $('#deselect_all_countries').click(function () {
+    //   $('#countryList option').prop('selected', false);
+    // });
+
+   
+
+    $('.countrypicker').countrypicker();
+    $("#set").click(function () {
+      dat = $("#countryList").val()
+
+      console.log(dat)
+      $.post("set_blacklist", { "data": dat })
+        .done(function (data) {
+          document.getElementById("blacklisted").options.length = 0;
+          data.forEach(function (t, i) {
+            $('#blacklisted').append($('<option>', {
+              value: i,
+              text: t
+            }));
+          });
+        });
+    });
+
+    
+  </script>
+
+
+
+</body>
+
+</html>

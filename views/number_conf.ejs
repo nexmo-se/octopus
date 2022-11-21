@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <title>Vonage Octopus Number Configurator </title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="../css/bootstrap.min.css" type="text/css" />
+  <link rel="stylesheet" href="../css/bootstrap-select.min.css" type="text/css" />
+  <link rel="stylesheet" href="../css/bootstrap-select-country.min.css" type="text/css" />
+  <link rel="stylesheet" href="../jqui/themes/black-tie/jquery-ui.css" type="text/css" />
+
+  <script src="../js/jquery.min.js"></script>
+  <script src="../js/bootstrap.min.js"></script>
+  <script src="../js/bootstrap-select.min.js"></script>
+  <script src="../js/bootstrap-select-country.min.js"></script>
+  <script src="../jqui/jquery-ui.min.js"></script>
+  <script src="../js/jquery-time-duration-picker.min.js"></script>
+</head>
+
+<body>
+  <div style="margin: 10px auto 10px auto;height: 30px;max-width: 1000px;">
+    <div style="float: right;">
+      <span style="display: inline-flex;">
+        <div class="user" style="padding: 5px;margin: auto 0;">
+          Vonage User "<%= user %>"
+        </div>
+        <div>
+          <form action="../logout" method="post" style="padding: 5px;margin: auto 0;">
+            <button class="logout" type="submit">Sign out</button>
+          </form>
+        </div>
+      </span>
+
+    </div>
+    <span style="float: left;margin: auto 0;padding: 5px;">
+      <label>Vonage SMS Number Configurator</label>
+    </span>
+  </div>
+  <hr style="border-color: darkgray;border-width: 1px;">
+  
+  <div style="display: grid; padding: 20px; min-width: 300px; max-width:600px; margin: 0 auto;">
+    <h3>Blacklist</h3>
+    <span style="display: inline-flex;">
+      <table width="100%">
+      <tr>
+        <td>Start Number</td><td>End Number</td>
+
+      <tr>
+        <td width="50%">
+          <select class="ranges" style="width: 100%" name="range_l" id="range_l" size=10 >
+            <% for (let nblacklist of num_blacklist){ %>
+              <option>
+                <%= nblacklist[0] %>
+              </option>
+              <% } %>
+          </select>
+        </td>
+        <td width="50%">
+       
+          <select class="ranges" style="width: 100%"  name="range_h" id="range_h" size=10>
+            <% for (let nblacklist of num_blacklist){ %>
+              <option>
+                <%= nblacklist[1] %>
+              </option>
+              <% } %>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <input id="range" type=text size="27"> 
+          <input id="add_range" type="button" value="add">
+          
+        </td>
+        <td align="right">
+          <input id="delete_range" type="button" value="Delete Selected">
+        </td>
+      </tr>
+    </table>
+    </span>
+    <br><br>
+  </div>
+
+  <hr style="border-color: darkgray;border-width: 1px;">
+
+  <div style="display: grid; padding: 20px; min-width: 300px; max-width:600px; margin: 0 auto;">
+    <h3>Whitelist</h3>
+    <span style="display: inline-flex;">
+      <table width="100%">
+      <tr>
+        <td>Start Number</td><td>End Number</td>
+
+      <tr>
+        <td width="50%">
+          <select class="wranges" style="width: 100%" name="wrange_l" id="wrange_l" size=10 >
+            <% for (let nwhitelist of num_whitelist){ %>
+              <option>
+                <%= nwhitelist[0] %>
+              </option>
+              <% } %>
+          </select>
+        </td>
+        <td width="50%">
+       
+          <select class="wranges" style="width: 100%"  name="wrange_h" id="wrange_h" size=10>
+            <% for (let nwhitelist of num_whitelist){ %>
+              <option>
+                <%= nwhitelist[1] %>
+              </option>
+              <% } %>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <input id="wrange" type=text size="27"> 
+          <input id="wadd_range" type="button" value="add">
+          
+        </td>
+        <td align="right">
+          <input id="wdelete_range" type="button" value="Delete Selected">
+        </td>
+      </tr>
+    </table>
+    </span>
+    <br><br>
+  </div>
+
+  <hr style="border-color: darkgray;border-width: 1px;">
+  
+  <div style="display: grid; padding: 20px; min-width: 300px; max-width:600px; margin: 0 auto;">
+    <h3>Auto Limit</h3>
+    <span style="display: inline-flex;">
+      <table width="100%">
+      <tr>
+        <td> Auto Limited Ranges</td>
+        <td> Hits/Time</td>
+      </tr>
+      <tr>
+        <td width="48%">
+          <select class="branges" style="width: 100%" name="blacklist_ranges" id="blacklist_ranges" size=15>
+           
+          </select>
+        </td>
+        <td width="10%">
+       
+          <select class="branges" style="width: 100%"  name="blacklist_hits" id="blacklist_hits" size=15>
+
+          </select>
+        </td>
+
+        <td width="42%"  style="padding: 5px;">
+          <label for="r_modifier">Range Modifier</label><br>
+          <input id="r_modifier" type=number size="5" value="<%=threshold.range%>"><br><br>
+          <label for="limit">Limit</label><br>
+          <input id="limit" type=number size="10" value="<%=threshold.limit%>"><br><br>
+          <label for="time">Time</label><br>
+
+          <input id="time" type="text" size="30" readonly="readonly" placeholder="Click me!"><br><br>
+
+          <!-- 3 hours, 25 minutes and 45 seconds -->
+          
+          <!-- Number of seconds -->
+          <input id="seconds" type="hidden" name="seconds" value="<%=threshold.time%>">
+
+          <input id="set_threshold" type="button" value="Set ">
+        </td>
+      </tr>
+      
+    </table>
+    </span>
+    <br><br>
+    
+    
+
+  </div>
+  
+  
+  ...
+  
+
+  <script>
+    function getISO8601Duration(seconds) {
+      seconds = parseInt(seconds)
+      //a day contains 60 * 60 * 24 = 86400 seconds
+      //an hour contains 60 * 60 = 3600 seconds
+      //a minut contains 60 seconds
+      //the amount of seconds we have left
+      var leftover = seconds;
+
+      //how many full days fits in the amount of leftover seconds
+      var days = Math.floor(leftover / 86400);
+
+      //how many seconds are left
+      leftover = leftover - (days * 86400);
+
+      //how many full hours fits in the amount of leftover seconds
+      var hours = Math.floor(leftover / 3600);
+
+      //how many seconds are left
+      leftover = leftover - (hours * 3600);
+
+      //how many minutes fits in the amount of leftover seconds
+      var minutes = Math.floor(leftover / 60);
+
+      //how many seconds are left
+      leftover = leftover - (minutes * 60);
+      return("P"+days + 'DT' + hours + 'H' + minutes + 'M' + leftover+"S");
+      }
+
+    $(function() {
+      $('#time').timeDurationPicker({
+        defaultValue: function() {
+          // The function must return either a String in ISO 8601 format (preferable)
+          // (see https://en.wikipedia.org/wiki/ISO_8601#Durations),
+          // or a Number - number of seconds
+
+          return getISO8601Duration($('#seconds').val());
+        },
+        years: false,
+        months: false,
+        seconds: false,
+        onSelect: function(element, seconds, duration, text) {
+          $('#seconds').val(seconds);
+          $('#duration').val(duration);
+          $('#time').val(text);
+        }
+      });
+    });
+
+    function serealizeSelects(select) {
+      var array = [];
+      select.each(function () { array.push($(this).val()) });
+      return array;
+    }
+
+    // //Use this if you want a custom button for select or deselect (like if you are not using bootstrap-select)
+    //
+    // $('#select_all_countries').click(function () {
+    //   $('#countryList option').prop('selected', true);
+    // });
+
+    // $('#deselect_all_countries').click(function () {
+    //   $('#countryList option').prop('selected', false);
+    // });
+
+    function combined() {
+      return $('#range_l > option').map(function(i, el) { 
+        return [[parseInt(el.value), parseInt($('#range_h > option')[i].value)]];
+       }).get()
+    }
+
+    function wcombined() {
+      return $('#wrange_l > option').map(function(i, el) { 
+        return [[parseInt(el.value), parseInt($('#wrange_h > option')[i].value)]];
+       }).get()
+    }
+
+    $("#time").click(function(){
+
+        $ ('html, body') .animate ({
+        scrollTop: $ ("#time") .offset().top + $("#time")[0].scrollHeight+200
+        }, 500);
+        return false;
+
+
+    })
+    $(".ranges").change(function () {
+      console.log(this.selectedIndex)
+      $("#range_h").get(0).selectedIndex = this.selectedIndex;
+      $("#range_l").get(0).selectedIndex = this.selectedIndex;
+    });
+
+    $(".ranges").on('mousedown' ,'option' ,function(e) {
+      console.log(e.currentTarget.index)
+      $("#range_h").get(0).selectedIndex = e.currentTarget.index
+      $("#range_l").get(0).selectedIndex = e.currentTarget.index
+    });
+
+    $(".wranges").change(function () {
+      console.log(this.selectedIndex)
+      $("#wrange_h").get(0).selectedIndex = this.selectedIndex;
+      $("#wrange_l").get(0).selectedIndex = this.selectedIndex;
+    });
+
+    $(".wranges").on('mousedown' ,'option' ,function(e) {
+      console.log(e.currentTarget.index)
+      $("#wrange_h").get(0).selectedIndex = e.currentTarget.index
+      $("#wrange_l").get(0).selectedIndex = e.currentTarget.index
+    });
+
+    $(".branges").on('mousedown' ,'option' ,function(e) {
+      console.log(e.currentTarget.index)
+      $("#blacklist_ranges").get(0).selectedIndex = e.currentTarget.index
+      $("#blacklist_hits").get(0).selectedIndex =  e.currentTarget.index
+    });
+
+    $(".branges").change(function () {
+      console.log(this.selectedIndex)
+      $("#blacklist_ranges").get(0).selectedIndex = this.selectedIndex;
+      $("#blacklist_hits").get(0).selectedIndex = this.selectedIndex;
+    });
+
+
+    $('.ranges').scroll(function () {
+      if ($('#range_l').is(':hover')) {
+        console.log("rl triggered")
+        $('#range_h').scrollTop($('#range_l').scrollTop())
+      }
+      if ($('#range_h').is(':hover')) {
+        console.log("rh triggered")
+        $('#range_l').scrollTop($('#range_h').scrollTop())
+      }
+    });
+    $('.branges').scroll(function () {
+      
+      if ($('#blacklist_ranges').is(':hover')) {
+        console.log("brl triggered")
+        $('#blacklist_hits').scrollTop($('#blacklist_ranges').scrollTop())
+      }
+      if ($('#blacklist_hits').is(':hover')) {
+        console.log("brh triggered")
+        $('#blacklist_ranges').scrollTop($('#blacklist_hits').scrollTop())
+      }
+    });
+   
+    $("#delete_range").click(function () {
+      $('.ranges option:selected').remove();
+      $.post("set_blacklist", { 
+          contentType:"application/json; charset=utf-8",
+          dataType:"json",
+         
+          data: JSON.stringify(combined()), })
+        .done(function (data) {
+          console.log(combined())    
+        });
+    });
+
+    $("#wdelete_range").click(function () {
+      $('.wranges option:selected').remove();
+      $.post("set_whitelist", { 
+          contentType:"application/json; charset=utf-8",
+          dataType:"json",
+         
+          data: JSON.stringify(wcombined()), })
+        .done(function (data) {
+          console.log(wcombined())    
+        });
+    });
+
+    $("#add_range").click(function () {
+      val = $("#range").val()
+      var rl;
+      var rh;
+      spl = val.split(/[\s-,]+/)
+      
+      if(spl.length < 2){
+        if(parseInt( spl[0] ) == spl[0] && spl[0] > 0){
+          //single number and a valid number
+          rl = parseInt(spl[0])
+          rh = rl
+        }else{
+          alert("You must enter a phone number")
+          return
+        }
+      }else{
+        //number range
+        if(parseInt( spl[0] ) == spl[0] && spl[0] > 0){
+          //single number and a valid number
+          rl = parseInt(spl[0])
+        }else{
+          alert("You must enter a phone number")
+          return
+        }
+        if(parseInt( spl[1] ) == spl[1] && spl[1] > 0){
+          //single number and a valid number
+          rh = parseInt(spl[1]);
+        }else{
+          alert("You must enter a phone number")
+          return
+        }
+      }
+      
+      if(rh<rl){
+        alert("Ending Number should not be lower than Starting Number")
+        return
+      }
+
+      if(combined().toString().includes([rl,rh].toString())){
+        alert("Already in list")
+        return
+      }
+
+      $('#range_l').append(new Option(rl, rl));
+      $('#range_h').append(new Option(rh, rh));
+      console.log("data",combined())
+      $.post("set_blacklist", { 
+          contentType:"application/json; charset=utf-8",
+          dataType:"json",
+         
+          data: JSON.stringify(combined()), })
+        .done(function (data) {
+          console.log(combined())    
+        });
+      
+    });
+
+    $("#wadd_range").click(function () {
+      val = $("#wrange").val()
+      var rl;
+      var rh;
+      spl = val.split(/[\s-,]+/)
+      
+      if(spl.length < 2){
+        if(parseInt( spl[0] ) == spl[0] && spl[0] > 0){
+          //single number and a valid number
+          rl = parseInt(spl[0])
+          rh = rl
+        }else{
+          alert("You must enter a phone number")
+          return
+        }
+      }else{
+        //number range
+        if(parseInt( spl[0] ) == spl[0] && spl[0] > 0){
+          //single number and a valid number
+          rl = parseInt(spl[0])
+        }else{
+          alert("You must enter a phone number")
+          return
+        }
+        if(parseInt( spl[1] ) == spl[1] && spl[1] > 0){
+          //single number and a valid number
+          rh = parseInt(spl[1]);
+        }else{
+          alert("You must enter a phone number")
+          return
+        }
+      }
+      
+      if(rh<rl){
+        alert("Ending Number should not be lower than Starting Number")
+        return
+      }
+
+      if(wcombined().toString().includes([rl,rh].toString())){
+        alert("Already in list")
+        return
+      }
+
+      $('#wrange_l').append(new Option(rl, rl));
+      $('#wrange_h').append(new Option(rh, rh));
+      console.log("data",wcombined())
+      $.post("set_whitelist", { 
+          contentType:"application/json; charset=utf-8",
+          dataType:"json",
+         
+          data: JSON.stringify(wcombined()), })
+        .done(function (data) {
+          console.log(wcombined())    
+        });
+      
+    });
+
+    $("#set_threshold").click(function () {
+      console.log($("#seconds").val())
+      var r_modifier = $("#r_modifier").val()
+      var limit = $("#limit").val()
+      var _time = $("#seconds").val()
+      var data = {"range":r_modifier, "limit":limit }
+      $.post("set_threshold", { 
+          range: r_modifier,
+          limit: limit,
+          time: _time,
+           })
+        .done(function (data) {
+          getBlacklist(norepeat=true);  
+        });
+    });
+
+    $(function() {
+      getBlacklist();
+    });
+
+    function getBlacklist(norepeat = false) {
+        if(!norepeat) setTimeout(getBlacklist,10000);
+
+        $.get('get_auto_blacklist', function(data) {
+          $('#blacklist_ranges').find('option').remove().end()
+          $('#blacklist_hits').find('option').remove().end()
+          r_mod = parseInt(data.range_modifier)
+          data["result"].forEach(function(res){
+            var range = res.range
+            if(r_mod > 0) range = res.range.slice(0,r_mod*-1)+"0".repeat(r_mod)+"-"+res.range.slice(0,r_mod*-1)+"9".repeat(r_mod)
+            var color = ''
+            //if(res.limit) color = 'style="color: red; font-weight: bold;"'
+            $('#blacklist_ranges')
+              .append('<option value="whatever" '+color+'>'+range+'</option>')
+            $('#blacklist_hits')
+              .append('<option value="whatever" '+color+'>'+res.count+'</option>')
+          ;
+            
+          })
+          
+        });
+    }
+
+  </script>
+
+
+
+</body>
+
+</html>
