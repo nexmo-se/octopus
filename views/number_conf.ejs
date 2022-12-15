@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 
+
+
 <html>
 
 <head>
@@ -17,6 +19,58 @@
   <script src="../js/bootstrap-select-country.min.js"></script>
   <script src="../jqui/jquery-ui.min.js"></script>
   <script src="../js/jquery-time-duration-picker.min.js"></script>
+
+  <style>
+    .btn-acc {
+      width: 80px;
+      background-color: lightgreen;
+    }
+    .accordion-heading {
+        position:relative;
+    }
+
+    .accordion-body-remove-pads{
+      padding: 0;
+    }
+  
+    .limit-header-width {
+      display: inline-flex;
+    }
+  
+    .accordion-button:not(.collapsed) {
+      color: #373737;
+      background-color: #eeeeee;
+      border-radius: 18px;
+    }
+
+    .accordion-button:is(.collapsed) {
+      color: #373737;
+      background-color: #eeeeee;
+      border-radius: 18px;
+    }
+
+    .Vlt-gradient--pink-to-peach {
+      border-radius: 18px;
+      height: calc(100% - 24px);
+      padding-right: 6px;
+      padding-bottom: 6px;
+      background: linear-gradient(90deg,#d5279b,#fea18c)!important;
+    }
+
+    .Vlt-card {
+      background:#fcfcfc;;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgb(19 20 21 / 10%);
+      display: block;
+      margin-bottom: 24px;
+      padding: 24px;
+      position: relative;
+      width: 100%;
+  }
+
+
+  </style>
+
 </head>
 
 <body>
@@ -35,153 +89,245 @@
 
     </div>
     <span style="float: left;margin: auto 0;padding: 5px;">
-      <label>Vonage SMS Number Configurator</label>
+      <label><a href="../conf">Home</a> -> Vonage SMS Number Configurator</label>
     </span>
   </div>
   <hr style="border-color: darkgray;border-width: 1px;">
+  <div class="accordion accordion-flush" id="accordionNumCon">
+    <div class="accordion-item" style="display: grid; padding: 20px; min-width: 300px; max-width:900px; margin: 0 auto;">
+      <div class=" accordion-header limit-header-width" id="headingBlacklist">
+        <button id="disable-btn" class="disable-btn btn-acc" value="blacklist_from">✔</button>
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBlacklist" aria-expanded="true" aria-controls="collapseBlacklist">
+          Black List
+        </button>
+      </div>
+
+      <div id="collapseBlacklist" class="accordion-collapse collapse show" aria-labelledby="headingBlacklist"  >
+        <div class="accordion-body accordion-body-remove-pads Vlt-gradient--pink-to-peach">
+          <div class="blacklist_from Vlt-card">
+            <table width="100%">
+              <tr>
+                <td>Start Number</td><td>End Number</td>
+        
+              <tr>
+                <td width="50%">
+                  <select class="ranges" style="width: 100%" name="range_l" id="range_l" size=10 >
+                    <% for (let nblacklist of num_blacklist){ %>
+                      <option>
+                        <%= nblacklist[0] %>
+                      </option>
+                      <% } %>
+                  </select>
+                </td>
+                <td width="50%">
+              
+                  <select class="ranges" style="width: 100%"  name="range_h" id="range_h" size=10>
+                    <% for (let nblacklist of num_blacklist){ %>
+                      <option>
+                        <%= nblacklist[1] %>
+                      </option>
+                      <% } %>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <input id="range" type=text size="27"> 
+                  <input id="add_range" type="button" value="add">
+                  
+                </td>
+                <td align="left">
+                  <input id="delete_range" type="button" value="Delete Selected">
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item" style="display: grid; padding: 20px; min-width: 300px; max-width:900px; margin: 0 auto;">
+      <div class=" accordion-header limit-header-width" id="headingWhitelist">
+        <button id="disable-btn" class="disable-btn btn-acc" value="whitelist_from">✔</button>
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWhitelist" aria-expanded="true" aria-controls="collapseWhitelist">
+          White List
+        </button>
+      </div>
+
+      <div id="collapseWhitelist" class="accordion-collapse collapse show" aria-labelledby="headingWhitelist"  >
+        <div class="accordion-body accordion-body-remove-pads Vlt-gradient--pink-to-peach">
+          <div class="whitelist_from Vlt-card">
+            <table width="100%">
+              <tr>
+                <td>Start Number</td><td>End Number</td>
+        
+              <tr>
+                <td width="50%">
+                  <select class="wranges" style="width: 100%" name="wrange_l" id="wrange_l" size=10 >
+                    <% for (let nwhitelist of num_whitelist){ %>
+                      <option>
+                        <%= nwhitelist[0] %>
+                      </option>
+                      <% } %>
+                  </select>
+                </td>
+                <td width="50%">
+              
+                  <select class="wranges" style="width: 100%"  name="wrange_h" id="wrange_h" size=10>
+                    <% for (let nwhitelist of num_whitelist){ %>
+                      <option>
+                        <%= nwhitelist[1] %>
+                      </option>
+                      <% } %>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <input id="wrange" type=text size="27"> 
+                  <input id="wadd_range" type="button" value="add">
+                  
+                </td>
+                <td align="left">
+                  <input id="wdelete_range" type="button" value="Delete Selected">
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item" style="display: grid; padding: 20px; min-width: 300px; max-width:900px; margin: 0 auto;">
+      <div class=" accordion-header limit-header-width" id="headingAutoLimiter">
+        <button id="disable-btn" class="disable-btn btn-acc" value="auto_rate_block">✔</button>
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAutoLimiter" aria-expanded="true" aria-controls="collapseAutoLimiter">
+          Auto Rate Limiter (Limit Rate per hour)
+        </button>
+      </div>
+
+      <div id="collapseAutoLimiter" class="accordion-collapse collapse show" aria-labelledby="headingAutoLimiter"  >
+        <div class="accordion-body accordion-body-remove-pads Vlt-gradient--pink-to-peach">
+          <div class="auto_rate_block Vlt-card">
+            <table width="100%">
+              <tr>
+                <td> Auto Limited Ranges</td>
+                <td> Hits/Time</td>
+              </tr>
+              <tr>
+                <td width="48%">
+                  <select class="branges" style="width: 100%" name="blacklist_ranges" id="blacklist_ranges" size=15>
+                   
+                  </select>
+                </td>
+                <td width="10%">
+               
+                  <select class="branges" style="width: 100%"  name="blacklist_hits" id="blacklist_hits" size=15>
+        
+                  </select>
+                </td>
+        
+                <td width="42%"  style="padding: 5px;">
+                  <label for="r_modifier">Range Modifier</label><br>
+                  <input id="r_modifier" type=number size="5" value="<%=threshold.range%>"><br><br>
+                  <label for="limit">Limit</label><br>
+                  <input id="limit" type=number size="10" value="<%=threshold.limit%>"><br><br>
+                  <label for="time">Time</label><br>
+        
+                  <input id="time" type="text" size="30" readonly="readonly" placeholder="Click me!"><br><br>
+        
+         
+                  <input id="seconds" type="hidden" name="seconds" value="<%=threshold.time%>">
+        
+                  <input id="set_threshold" type="button" value="Set ">
+                </td>
+              </tr>
+              
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item" style="display: grid; padding: 20px; min-width: 300px; max-width:900px; margin: 0 auto;">
+      <div class=" accordion-header limit-header-width" id="headingAutoLimiterTimeLock">
+        <button id="disable-btn" class="disable-btn btn-acc" value="auto_block_duration">✔</button>
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAutoLimiterTimeLock" aria-expanded="true" aria-controls="collapseAutoLimiterTimeLock">
+          Auto Rate Limiter (Duration Lock)
+        </button>
+      </div>
+
+      <div id="collapseAutoLimiterTimeLock" class="accordion-collapse collapse show" aria-labelledby="headingAutoLimiterTimeLock"  >
+        <div class="accordion-body accordion-body-remove-pads Vlt-gradient--pink-to-peach">
+          <div class="auto_block_duration Vlt-card">
+            <table width="100%">
+              <tr>
+                <td> Auto Limited Ranges</td>
+                <td> Blocked Until</td>
+              </tr>
+              <tr>
+                <td width="30%">
+                  <select class="lt_ranges" style="width: 100%" name="lt_blacklist_ranges" id="lt_blacklist_ranges" size=18>
+                   
+                  </select>
+                </td>
+                <td width="30%">
+               
+                  <select class="lt_ranges" style="width: 100%"  name="lt_blacklist_hits" id="lt_blacklist_hits" size=18>
+        
+                  </select>
+                </td>
+        
+                <td width="40%"  style="padding: 5px;">
+                  <label for="lt_r_modifier">Range Modifier</label><br>
+                  <input id="lt_r_modifier" type=number size="5" value="<%=auto_blacklist_threshold.range%>"><br><br>
+                  <label for="lt_limit">Limit</label><br>
+                  <input id="lt_limit" type=number size="10" value="<%=auto_blacklist_threshold.limit%>"><br><br>
+                  <label for="lt_time">Time</label><br>
+        
+                  <input id="lt_time" type="text" size="30" readonly="readonly" placeholder="Click me!"><br><br>
+        
+                  <!-- 3 hours, 25 minutes and 45 seconds -->
+                  
+                  <!-- Number of seconds -->
+                  <input id="lt_seconds" type="hidden" name="seconds" value="<%=auto_blacklist_threshold.time%>">
+        
+                  <label for="lt_lock_time">Lock Duration</label><br>
+        
+                  <input id="lt_lock_time" type="text" size="30" readonly="readonly" placeholder="Click me!"><br><br>
+        
+                  <!-- 3 hours, 25 minutes and 45 seconds -->
+                  
+                  <!-- Number of seconds -->
+                  <input id="lt_lock_seconds" type="hidden" name="lt_lock_seconds" value="<%=auto_blacklist_threshold.lock_time%>">
+        
+                  <input id="lt_set_threshold" type="button" value="Set ">
+                </td>
+              </tr>
+              <tr>
+                <td></td>
+                
+                <td align="left">
+                  <input id="delete_auto" type="button" value="Delete Selected">
+                </td>
+                <td></td>
+              </tr>
+              
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   
-  <div style="display: grid; padding: 20px; min-width: 300px; max-width:600px; margin: 0 auto;">
-    <h3>Blacklist</h3>
-    <span style="display: inline-flex;">
-      <table width="100%">
-      <tr>
-        <td>Start Number</td><td>End Number</td>
 
-      <tr>
-        <td width="50%">
-          <select class="ranges" style="width: 100%" name="range_l" id="range_l" size=10 >
-            <% for (let nblacklist of num_blacklist){ %>
-              <option>
-                <%= nblacklist[0] %>
-              </option>
-              <% } %>
-          </select>
-        </td>
-        <td width="50%">
-       
-          <select class="ranges" style="width: 100%"  name="range_h" id="range_h" size=10>
-            <% for (let nblacklist of num_blacklist){ %>
-              <option>
-                <%= nblacklist[1] %>
-              </option>
-              <% } %>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <input id="range" type=text size="27"> 
-          <input id="add_range" type="button" value="add">
-          
-        </td>
-        <td align="right">
-          <input id="delete_range" type="button" value="Delete Selected">
-        </td>
-      </tr>
-    </table>
-    </span>
-    <br><br>
-  </div>
 
-  <hr style="border-color: darkgray;border-width: 1px;">
-
-  <div style="display: grid; padding: 20px; min-width: 300px; max-width:600px; margin: 0 auto;">
-    <h3>Whitelist</h3>
-    <span style="display: inline-flex;">
-      <table width="100%">
-      <tr>
-        <td>Start Number</td><td>End Number</td>
-
-      <tr>
-        <td width="50%">
-          <select class="wranges" style="width: 100%" name="wrange_l" id="wrange_l" size=10 >
-            <% for (let nwhitelist of num_whitelist){ %>
-              <option>
-                <%= nwhitelist[0] %>
-              </option>
-              <% } %>
-          </select>
-        </td>
-        <td width="50%">
-       
-          <select class="wranges" style="width: 100%"  name="wrange_h" id="wrange_h" size=10>
-            <% for (let nwhitelist of num_whitelist){ %>
-              <option>
-                <%= nwhitelist[1] %>
-              </option>
-              <% } %>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <input id="wrange" type=text size="27"> 
-          <input id="wadd_range" type="button" value="add">
-          
-        </td>
-        <td align="right">
-          <input id="wdelete_range" type="button" value="Delete Selected">
-        </td>
-      </tr>
-    </table>
-    </span>
-    <br><br>
-  </div>
-
-  <hr style="border-color: darkgray;border-width: 1px;">
-  
-  <div style="display: grid; padding: 20px; min-width: 300px; max-width:600px; margin: 0 auto;">
-    <h3>Auto Limit</h3>
-    <span style="display: inline-flex;">
-      <table width="100%">
-      <tr>
-        <td> Auto Limited Ranges</td>
-        <td> Hits/Time</td>
-      </tr>
-      <tr>
-        <td width="48%">
-          <select class="branges" style="width: 100%" name="blacklist_ranges" id="blacklist_ranges" size=15>
-           
-          </select>
-        </td>
-        <td width="10%">
-       
-          <select class="branges" style="width: 100%"  name="blacklist_hits" id="blacklist_hits" size=15>
-
-          </select>
-        </td>
-
-        <td width="42%"  style="padding: 5px;">
-          <label for="r_modifier">Range Modifier</label><br>
-          <input id="r_modifier" type=number size="5" value="<%=threshold.range%>"><br><br>
-          <label for="limit">Limit</label><br>
-          <input id="limit" type=number size="10" value="<%=threshold.limit%>"><br><br>
-          <label for="time">Time</label><br>
-
-          <input id="time" type="text" size="30" readonly="readonly" placeholder="Click me!"><br><br>
-
-          <!-- 3 hours, 25 minutes and 45 seconds -->
-          
-          <!-- Number of seconds -->
-          <input id="seconds" type="hidden" name="seconds" value="<%=threshold.time%>">
-
-          <input id="set_threshold" type="button" value="Set ">
-        </td>
-      </tr>
-      
-    </table>
-    </span>
-    <br><br>
-    
-    
-
-  </div>
   
   
   ...
   
 
   <script>
+    
     function getISO8601Duration(seconds) {
       seconds = parseInt(seconds)
       //a day contains 60 * 60 * 24 = 86400 seconds
@@ -211,6 +357,15 @@
       }
 
     $(function() {
+
+      var mods_disabled = JSON.parse('<%- modules_disabled %>');
+      mods_disabled.forEach((id) => {
+        console.log(id)
+        $("."+id+" *").prop('disabled',true);
+        $('.disable-btn[value="'+id+'"]').text("X")
+        $('.disable-btn[value="'+id+'"]').css('background-color','lightcoral')
+      });
+      
       $('#time').timeDurationPicker({
         defaultValue: function() {
           // The function must return either a String in ISO 8601 format (preferable)
@@ -226,6 +381,42 @@
           $('#seconds').val(seconds);
           $('#duration').val(duration);
           $('#time').val(text);
+        }
+      });
+
+      $('#lt_time').timeDurationPicker({
+        defaultValue: function() {
+          // The function must return either a String in ISO 8601 format (preferable)
+          // (see https://en.wikipedia.org/wiki/ISO_8601#Durations),
+          // or a Number - number of seconds
+
+          return getISO8601Duration($('#lt_seconds').val());
+        },
+        years: false,
+        months: false,
+        seconds: false,
+        onSelect: function(element, seconds, duration, text) {
+          $('#lt_seconds').val(seconds);
+          //$('#duration').val(duration);
+          $('#lt_time').val(text);
+        }
+      });
+
+      $('#lt_lock_time').timeDurationPicker({
+        defaultValue: function() {
+          // The function must return either a String in ISO 8601 format (preferable)
+          // (see https://en.wikipedia.org/wiki/ISO_8601#Durations),
+          // or a Number - number of seconds
+
+          return getISO8601Duration($('#lt_lock_seconds').val());
+        },
+        years: false,
+        months: false,
+        seconds: false,
+        onSelect: function(element, seconds, duration, text) {
+          $('#lt_lock_seconds').val(seconds);
+          // $('#duration').val(duration);
+          $('#lt_lock_time').val(text);
         }
       });
     });
@@ -258,15 +449,13 @@
        }).get()
     }
 
-    $("#time").click(function(){
-
+    $("#lt_lock_time").click(function(){
         $ ('html, body') .animate ({
-        scrollTop: $ ("#time") .offset().top + $("#time")[0].scrollHeight+200
+        scrollTop: $ ("#lt_lock_time") .offset().top + $("#lt_lock_time")[0].scrollHeight+200
         }, 500);
         return false;
-
-
     })
+
     $(".ranges").change(function () {
       console.log(this.selectedIndex)
       $("#range_h").get(0).selectedIndex = this.selectedIndex;
@@ -297,10 +486,22 @@
       $("#blacklist_hits").get(0).selectedIndex =  e.currentTarget.index
     });
 
+    $(".lt_ranges").on('mousedown' ,'option' ,function(e) {
+      console.log(e.currentTarget.index)
+      $("#lt_blacklist_ranges").get(0).selectedIndex = e.currentTarget.index
+      $("#lt_blacklist_hits").get(0).selectedIndex =  e.currentTarget.index
+    });
+
     $(".branges").change(function () {
       console.log(this.selectedIndex)
       $("#blacklist_ranges").get(0).selectedIndex = this.selectedIndex;
       $("#blacklist_hits").get(0).selectedIndex = this.selectedIndex;
+    });
+
+    $(".lt_ranges").change(function () {
+      console.log(this.selectedIndex)
+      $("#lt_blacklist_ranges").get(0).selectedIndex = this.selectedIndex;
+      $("#lt_blacklist_hits").get(0).selectedIndex = this.selectedIndex;
     });
 
 
@@ -314,6 +515,7 @@
         $('#range_l').scrollTop($('#range_h').scrollTop())
       }
     });
+
     $('.branges').scroll(function () {
       
       if ($('#blacklist_ranges').is(':hover')) {
@@ -325,6 +527,18 @@
         $('#blacklist_ranges').scrollTop($('#blacklist_hits').scrollTop())
       }
     });
+
+    $('.lt_ranges').scroll(function () {
+      
+      if ($('#lt_blacklist_ranges').is(':hover')) {
+        console.log("brl triggered")
+        $('#lt_blacklist_hits').scrollTop($('#lt_blacklist_ranges').scrollTop())
+      }
+      if ($('#lt_blacklist_hits').is(':hover')) {
+        console.log("brh triggered")
+        $('#lt_blacklist_ranges').scrollTop($('#lt_blacklist_hits').scrollTop())
+      }
+    });
    
     $("#delete_range").click(function () {
       $('.ranges option:selected').remove();
@@ -333,6 +547,20 @@
           dataType:"json",
          
           data: JSON.stringify(combined()), })
+        .done(function (data) {
+          console.log(combined())    
+        });
+    });
+
+    $("#delete_auto").click(function () {
+      var id = $('#lt_blacklist_ranges option:selected').val()
+      console.log("Selected ID ", id)
+      $('.lt_ranges option:selected').remove();
+      $.post("delete_from_auto", { 
+          contentType:"application/json; charset=utf-8",
+          dataType:"json",
+         
+          data: {"id":id} })
         .done(function (data) {
           console.log(combined())    
         });
@@ -480,18 +708,38 @@
         });
     });
 
+    $("#lt_set_threshold").click(function () {
+      console.log($("#lt_seconds").val())
+      var r_modifier = $("#lt_r_modifier").val()
+      var limit = $("#lt_limit").val()
+      var _time = $("#lt_seconds").val()
+      var lock_time = $("#lt_lock_seconds").val()
+      var data = {"lt_range":r_modifier, "limit":limit }
+      $.post("lt_set_threshold", { 
+          range: r_modifier,
+          limit: limit,
+          time: _time,
+          lock_time: lock_time
+           })
+        .done(function (data) {
+          getBlacklist(norepeat=true);  
+        });
+    });
+
     $(function() {
       getBlacklist();
     });
-
+//----> Next task is to add ranges for lt auto lock from DB
     function getBlacklist(norepeat = false) {
         if(!norepeat) setTimeout(getBlacklist,10000);
 
         $.get('get_auto_blacklist', function(data) {
           $('#blacklist_ranges').find('option').remove().end()
           $('#blacklist_hits').find('option').remove().end()
+          $('#lt_blacklist_ranges').find('option').remove().end()
+          $('#lt_blacklist_hits').find('option').remove().end()
           r_mod = parseInt(data.range_modifier)
-          data["result"].forEach(function(res){
+          data["threshold_result"].forEach(function(res){
             var range = res.range
             if(r_mod > 0) range = res.range.slice(0,r_mod*-1)+"0".repeat(r_mod)+"-"+res.range.slice(0,r_mod*-1)+"9".repeat(r_mod)
             var color = ''
@@ -503,9 +751,53 @@
           ;
             
           })
+
+          data["auto_result"].forEach(function(res){
+            range = res.number_start+"-"+res.number_end
+            var color = ''
+            var timestamp = parseInt(res.blocked_until)
+            console.log(timestamp, res.blocked_until)
+            var _date = new Date(timestamp * 1000)
+            //if(res.limit) color = 'style="color: red; font-weight: bold;"'
+            $('#lt_blacklist_ranges')
+              .append('<option value="'+res.id+'" '+color+'>'+range+'</option>')
+            $('#lt_blacklist_hits')
+              .append('<option value="" '+color+'>'+res.blocked_until+'</option>')
+          ;
+            
+          })
           
         });
     }
+
+
+    $('.disable-btn').click(function(){
+      var id =  $(this).val()
+      if($(this).text() == "✔") {
+        $(this).text("X")
+        $(this).css('background-color','lightcoral')
+        $("."+id+" *").prop('disabled',true);
+        $.post("disable_module", { 
+          module_name: id,
+           })
+        .done(function (data) {
+          
+        });
+      }else{
+        $(this).text("✔")
+        $(this).css('background-color','lightgreen')
+        $("."+id+" *").prop('disabled',false);
+        $.post("enable_module", { 
+          module_name: id,
+           })
+        .done(function (data) {
+          
+        });
+      }
+
+    });
+
+    
 
   </script>
 

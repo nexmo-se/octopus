@@ -6,7 +6,16 @@ import { fileURLToPath } from 'url';
 import cel from "connect-ensure-login"
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const views_path = __dirname + '/../views/';
-const ensureLoggedIn = cel.ensureLoggedIn
+const debug = process.env.DEBUG || false;
+var ensureLoggedIn = cel.ensureLoggedIn 
+//if debug, ensuredLoggedIn does nothing
+if (debug){
+    ensureLoggedIn = (options) => {
+        return function (req, res, next) {
+            next()
+        };
+    }
+}
 
 export function CountryBlacklist(state){
   this.router = express.Router();

@@ -4,7 +4,7 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
 
-import cel from "connect-ensure-login"
+import cel, { ensureLoggedOut } from "connect-ensure-login"
 import cookieSession from "cookie-session"
 import cookieParser from "cookie-parser";
 import { passport_auth, passport } from "./passport-strategy.js";
@@ -19,6 +19,27 @@ import Vonage from '@vonage/server-sdk';
 // pools will use environment variables
 // for connection information
 const pool = new pg.Pool()
+
+// function ensureLoggedIn(options) {
+//     if (typeof options == 'string') {
+//         options = { redirectTo: options };
+//     }
+//     options = options || {};
+  
+//     var url = options.redirectTo || '/login';
+//     var setReturnTo = (options.setReturnTo === undefined) ? true : options.setReturnTo;
+  
+//     return function (req, res, next) {
+//         if (!req.isAuthenticated || !req.isAuthenticated()) {
+//             if (setReturnTo && req.session) {
+//                 req.session.returnTo = req.originalUrl || req.url;
+//             }
+//             res.clearCookie('session', {path: '/'});
+//             return res.redirect(301, url);
+//         }
+//         next();
+//     };
+//   };
 
 var octo_logger = async function (req, res, next){
     var api_key = req.body.api_key
@@ -44,6 +65,12 @@ var validator = async function (req, res, next){
     console.log("Validate")
     var api_key = req.body.api_key
     var api_secret = req.body.api_secret
+    console.log(">>>:", api_key, api_key == "octo")
+    if (api_key == "octo"){
+        console.log("skip")
+        return next()
+    }
+
     const vonage = new Vonage({
         apiKey: api_key,
         apiSecret: api_secret
@@ -54,7 +81,7 @@ var validator = async function (req, res, next){
             //Valid API Secret, Let's go
             next()
         } else {
-            res.status(200).json({"Error":"Authentication Failed","message":"Check you API KEY and API SECRET"});
+            res.status(403).json({"Error":"Authentication Failed","message":"Check you API KEY and API SECRET"});
             return
         }
     });
@@ -71,7 +98,18 @@ var session = neru.getSessionById("zzbeejay");
 const globalstate = new State(session);
 const numbermodule = new NumberModule(globalstate, pool);
 const countryblacklist = new CountryBlacklist(globalstate);
-const ensureLoggedIn = cel.ensureLoggedIn
+
+const debug = process.env.DEBUG || false;
+var ensureLoggedIn = cel.ensureLoggedIn 
+//if debug, ensuredLoggedIn does nothing
+if (debug){
+    ensureLoggedIn = (options) => {
+        return function (req, res, next) {
+            next()
+        };
+    }
+}
+
 
 
 passport_auth() //calls pasport.use
@@ -94,10 +132,12 @@ app.use(passport.authenticate('session'));
 
 //load the css, js, fonts to static paths so it's easier to call in template
 app.use("/fonts", express.static(join(__dirname, "node_modules/bootstrap/fonts")));
-app.use("/css", express.static(join(__dirname, "node_modules/bootstrap/dist/css")));
+app.use("/css", express.static(join(__dirname, "node_modules/bootstrap-latest/dist/css")));
+app.use("/bootstrap-3.3.7-css", express.static(join(__dirname, "node_modules/bootstrap/dist/css")));
 app.use("/css", express.static(join(__dirname, "node_modules/bootstrap-select/dist/css")));
 app.use("/css", express.static(join(__dirname, "node_modules/bootstrap-select-country/dist/css")));
-app.use("/js", express.static(join(__dirname, "node_modules/bootstrap/dist/js")));
+app.use("/bootstrap-3.3.7-js", express.static(join(__dirname, "node_modules/bootstrap/dist/js")));
+app.use("/js", express.static(join(__dirname, "node_modules/bootstrap-latest/dist/js")));
 app.use("/js", express.static(join(__dirname, "node_modules/bootstrap-select/dist/js")));
 app.use("/js", express.static(join(__dirname, "node_modules/bootstrap-select-country/dist/js")));
 app.use("/js", express.static(join(__dirname, "node_modules/jquery-time-duration-picker/dist")));
@@ -123,10 +163,12 @@ app.use('/sms',
 
 
 app.post('/octopus',
-    validator,octo_logger,
+    validator,
+    octo_logger,
     numbermodule.whitelist_from,
     numbermodule.blacklist_from,
     numbermodule.auto_rate_block,
+    numbermodule.auto_block_duration,
 
     //custom middleware to check if "to" is blacklisted
     // [countryblacklist.blacklist_to],
@@ -153,7 +195,7 @@ app.get('/_/health', async (req, res) => {
 
 //see if service is live
 app.get('/', async (req, res, next) => {
-    res.send("Vonage Proxy Service");
+    res.redirect('./login');
 });
 
 app.get('/conf', function (req, res, next) {

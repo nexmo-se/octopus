@@ -11,7 +11,9 @@
   "license": "ISC",
   "dependencies": {
     "@vonage/server-sdk": "^2.11.2",
-    "bootstrap": "^3.4.1",
+    "bootstrap": "^3.3.7",
+    "bootstrap-3.3.7": "npm:bootstrap@^3.3.7",
+    "bootstrap-latest": "npm:bootstrap@^5.2.3",
     "bootstrap-select": "^1.13.18",
     "bootstrap-select-country": "^4.2.0",
     "connect-ensure-login": "^0.1.1",
@@ -29,8 +31,9 @@
     "jquery": "^3.6.0",
     "jquery-time-duration-picker": "^2.2.7",
     "jquery-ui": "^1.13.2",
+    "latest-bootstrap": "npm:bootstrap@^5.2.3",
     "libphonenumber-js": "^1.10.13",
-    "neru-alpha": "^3.2.0",
+    "neru-alpha": "^3.3.2",
     "passport": "^0.5.3",
     "passport-local": "^1.0.0",
     "pg": "^8.8.0"
