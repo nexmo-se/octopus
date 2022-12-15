@@ -1,22 +1,36 @@
-## Neru Vonage API Proxy with SMS Blacklist
+## Octopus API
 
 Configuration will be at: /conf
 Login using APP_ID and API_SECRET
 
-SMS API needs to point to: /sms/json
+This Service will check "from" number for fraud using various filters
 
 Sample Curl:
 ```
-curl --location --request POST 'https://<PROXY>/sms/json' \
+curl --location --request POST 'https://<ENDPOINT>/octopus' \
 --header 'Content-Type: application/x-www-form-urlencoded' \
---data-urlencode 'from=Vonage APIs' \
---data-urlencode 'text=A text message sent using the Vonage SMS API' \
---data-urlencode 'to=<NUMBER>' \
---data-urlencode 'api_key=<KEY>' \
---data-urlencode 'api_secret=<KEY>'
+--data-urlencode 'from=FROMNUMBER' \
+--data-urlencode 'api_key=APIKEY' \
+--data-urlencode 'api_secret=APISECRET'
 ```
 
-Will return `403: Country in Blocked List` if using SMS API and “to” number is in country blacklist. Otherwise, this will act as a straight through proxy for https://rest.nexmo.com.
+Will return 
+```
+{
+    "allowed": true,
+    "message": "<MESSAGE>"
+}
+```
+If *NOT blocked*
+
+Will return 
+```
+{
+    "allowed": false,
+    "message": "<MESSAGE>"
+}
+```
+If *Blocked*
 
 ## This code uses the Neru Serverless Platform
 As such, neru needs to be initialized to run this
