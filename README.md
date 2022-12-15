@@ -3,6 +3,8 @@
 Configuration will be at: /conf
 Login using APP_ID and API_SECRET
 
+The code is very POC, as such it is not very clean at the moment. You can skin the EJS files
+
 This Service will check "from" number for fraud using various filters
 
 Sample Curl:
@@ -31,6 +33,12 @@ Will return
 }
 ```
 If *Blocked*
+
+## Notes
+- You can run it in Neru debug with caveats
+- In Debug mode, the Login Authentication does not work and you will default to user octopus
+- Use "octo" as api_key when sending request to /octopus when in debug mode. API Secret does not matter. Only works in Debug
+- Also, in neru debug, the database will sometimes fail since debug IPs might not have been all added.
 
 ## This code uses the Neru Serverless Platform
 As such, neru needs to be initialized to run this
