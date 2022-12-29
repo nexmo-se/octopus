@@ -19,7 +19,7 @@ import Vonage from '@vonage/server-sdk';
 // pools will use environment variables
 // for connection information
 const pool = new pg.Pool()
-
+const debug = process.env.DEBUG || false;
 // function ensureLoggedIn(options) {
 //     if (typeof options == 'string') {
 //         options = { redirectTo: options };
@@ -66,10 +66,14 @@ var validator = async function (req, res, next){
     var api_key = req.body.api_key
     var api_secret = req.body.api_secret
     console.log(">>>:", api_key, api_key == "octo")
-    if (api_key == "octo"){
-        console.log("skip")
-        return next()
+
+    if (debug){
+        if (api_key == "octo"){
+            console.log("skip")
+            return next()
+        }
     }
+    
 
     const vonage = new Vonage({
         apiKey: api_key,
@@ -99,7 +103,7 @@ const globalstate = new State(session);
 const numbermodule = new NumberModule(globalstate, pool);
 const countryblacklist = new CountryBlacklist(globalstate);
 
-const debug = process.env.DEBUG || false;
+
 var ensureLoggedIn = cel.ensureLoggedIn 
 //if debug, ensuredLoggedIn does nothing
 if (debug){
